@@ -96,8 +96,6 @@ def draw_all(js, je, joined=False):
         sp_file=ds.starfile
         sp=pa.read_starvtk(sp_file)
         
-#        fig = plt.figure(figsize=(24,12))
-#        gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[4,1],hspace=0.1)
         fig = plt.figure(figsize=(24,15))
         gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[2,1],hspace=0.1)
         ax=np.ndarray((2,2),dtype=object)
@@ -159,124 +157,25 @@ def draw_all(js, je, joined=False):
         plt.close(fig)
 
         # phase diagram (n-P,T-P)
-#        fig, ax = plt.subplots(1,2,figsize=(22,10))
-#        ax[0].hexbin(den.flatten(),pok.flatten(),xscale='log',yscale='log'
-#                ,cmap='Greys',mincnt=1,bins='log',vmin=0,vmax=4)
-#        ax[1].hexbin(den.flatten(),T.flatten(),xscale='log',yscale='log'
-#                ,cmap='Greys',mincnt=1,bins='log',vmin=0,vmax=4)
-#        ax[0].set_xlim(1e-5,1e4)
-#        ax[0].set_ylim(1e1,1e7)
-#        ax[1].set_xlim(1e-5,1e4)
-#        ax[1].set_ylim(1e2,1e8)
-#
-#        ax[0].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
-#        ax[0].set_ylabel(r'$P/k_{\rm B}\,[{\rm K\,cm^{-3}}]$')
-#        ax[1].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
-#        ax[1].set_ylabel(r'$T\,[{\rm K}]$')
-#        ax[0].text(2e-5,3e6,r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
-#        fig.tight_layout()
-#        fig.savefig('phase_{:04d}.png'.format(i),bbox_inches='tight')
-#        plt.close(fig)
-
-        # phase diagram (n-P; volume weighted, mass weighted)
         fig, ax = plt.subplots(1,2,figsize=(22,10))
         ax[0].hexbin(den.flatten(),pok.flatten(),xscale='log',yscale='log'
-                ,cmap='Greys',mincnt=1,bins='log',vmin=0,vmax=4)
-        ax[1].hexbin(den.flatten(),pok.flatten(),xscale='log',yscale='log'
-                ,cmap='Greys',mincnt=1,bins='log',vmin=0,vmax=4,
+                ,cmap='Greys',mincnt=1,bins='log',gridsize=(100,100),
                 C=den.flatten(),reduce_C_function=np.sum)
-        ax[0].set_xlim(1e-5,1e4)
+        ax[1].hexbin(den.flatten(),T.flatten(),xscale='log',yscale='log'
+                ,cmap='Greys',mincnt=1,bins='log',gridsize=(100,100),
+                C=den.flatten(),reduce_C_function=np.sum)
+        ax[0].set_xlim(1e-3,1e4)
         ax[0].set_ylim(1e1,1e7)
-        ax[1].set_xlim(1e-5,1e4)
+        ax[1].set_xlim(1e-3,1e4)
         ax[1].set_ylim(1e1,1e7)
 
         ax[0].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
         ax[0].set_ylabel(r'$P/k_{\rm B}\,[{\rm K\,cm^{-3}}]$')
         ax[1].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
-        ax[1].set_ylabel(r'$P/k_{\rm B}\,[{\rm K\,cm^{-3}}]$')
+        ax[1].set_ylabel(r'$T\,[{\rm K}]$')
         ax[0].text(2e-5,3e6,r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
         fig.tight_layout()
         fig.savefig('phase_{:04d}.png'.format(i),bbox_inches='tight')
-        plt.close(fig)
-
-def density_projection(js, je, joined=False):
-    """
-    draw xy and xz density projection from js to je
-    """
-    unit=pa.set_units(muH=1.4271)
-    codemass=unit['mass']
-    codetime=unit['time']
-    codelength=unit['length']
-    codevel=unit['velocity']
-    for i in range(js,je+1):
-        if joined:
-            ds=pa.AthenaDataSet('../gc.{:04d}.vtk'.format(i))
-        else:
-            ds=pa.AthenaDataSet('../id0/gc.{:04d}.vtk'.format(i))
-        #This is domain information
-        xmin=ds.domain['left_edge']
-        xmax=ds.domain['right_edge']
-        dx=ds.domain['dx']
-        Nx=ds.domain['Nx']
-        
-        # set up cell centered coordinates
-        x=np.arange(xmin[0],xmax[0],dx[0])+0.5*dx[0]
-        y=np.arange(xmin[1],xmax[1],dx[1])+0.5*dx[1]
-        z=np.arange(xmin[2],xmax[2],dx[2])+0.5*dx[2]
-        
-        #This sets up for image plots based on the domain physical size
-        xyextent=[xmin[0],xmax[0],xmin[1],xmax[1]]
-        xzextent=[xmin[0],xmax[0],xmin[2],xmax[2]]
-        yzextent=[xmin[1],xmax[1],xmin[2],xmax[2]]
-        
-        d=ds.read_all_data('density')
-        surfxy=d.sum(axis=0)*dx[2]*codemass.value/codelength.value**2
-        surfxz=d.sum(axis=1)*dx[1]*codemass.value/codelength.value**2
-        
-        # This line reads in star particle data
-        sp_file=ds.starfile
-        sp=pa.read_starvtk(sp_file)
-        
-        # let's combine surface density map with star particles.
-        
-        fig,ax=plt.subplots(1,2,figsize=(24,8))
-        
-        plt.rcParams['font.size']=12
-        
-        ax[0].set_xlim(xmin[0],xmax[0])
-        ax[0].set_ylim(xmin[1],xmax[1])
-        ax[1].set_xlim(xmin[0],xmax[0])
-        ax[1].set_ylim(xmin[2],xmax[2])
-      
-        # xy projection
-        im=ax[0].imshow(surfxy,norm=LogNorm(),origin='lower',zorder=0,extent=xyextent,cmap='pink_r',clim=[1.e-1,1.e3])
-        cbar=plt.colorbar(im,ax=ax[0])
-        cbar.set_label(r'$\Sigma [M_{\odot} {\rm pc}^{-2}]$')
-        ax[0].set_xlabel(r'$x [{\rm pc}]$')
-        ax[0].set_ylabel(r'$y [{\rm pc}]$')
-        
-        #This uses the star particle plotting and legend
-        cl=sp_plot(ax[0],sp,proj='z')
-        leg=sp_legend(ax[0])
-        
-        # Now adding the colorbar for cluster particles
-        cax1 = fig.add_axes([0.55, 0.93, 0.2, 0.02]) # [left, bottom, width, height]
-        cbar=plt.colorbar(cl,ticks=[0,20,40],cax=cax1,orientation='horizontal')
-        cbar.ax.set_title(r'$age [Myr]$')
-      
-        # xz projection
-        im=ax[1].imshow(surfxz,norm=LogNorm(),origin='lower',zorder=0,extent=xzextent,cmap='pink_r',clim=[1.e0,1.e4])
-        cbar=plt.colorbar(im,ax=ax[1])
-        cbar.set_label(r'$\Sigma [M_{\odot} {\rm pc}^{-2}]$')
-        ax[1].set_xlabel(r'$x [{\rm pc}]$')
-        ax[1].set_ylabel(r'$z [{\rm pc}]$')
-        
-        #This uses the star particle plotting and legend
-        cl=sp_plot(ax[1],sp,proj='y')
-       
-        ax[1].text(-400,300,r'$t=$'+'{:.1f} Myr'.format(0.1*i))
-        # You can save the figure by uncommenting the following command
-        fig.savefig('surfmap_{:04d}.png'.format(i),bbox_inches='tight')
         plt.close(fig)
 
 def tmporary():
@@ -345,5 +244,5 @@ if __name__ == '__main__':
     print("Number of arguments: {0}".format(len(sys.argv)))
     print("draw images from time {0} to {1}".format(sys.argv[1],sys.argv[2]))
 #    density_projection(int(sys.argv[1]),int(sys.argv[2]),joined=False)
-#    draw_all(int(sys.argv[1]),int(sys.argv[2]),joined=False)
-    draw_hst(1024,1024,256,tmax=350)
+    draw_all(int(sys.argv[1]),int(sys.argv[2]),joined=True)
+#    draw_hst(600,600,1200,tmax=350)
