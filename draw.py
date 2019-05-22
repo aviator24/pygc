@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from matplotlib import gridspec
 import numpy as np
+from numpy import histogram2d
 import astropy.constants as c
 import astropy.units as u
 from matplotlib.colors import LogNorm
@@ -13,7 +14,7 @@ def mass_norm(mass):
     Mass normlization function to determine symbol size
     This should be called both in sp_plot and sp_legend for the consistent result
     '''
-    return np.sqrt(mass/100.)
+    return np.sqrt(mass/300.)
 
 def sp_plot(ax,sp,proj=None):
     '''
@@ -52,7 +53,7 @@ def sp_legend(ax,ref_mass=[1.e4,1.e5,1.e6]):
         label.append(r'$10^%d M_\odot$' % np.log10(mass))
     ax.set_xlim(ext[0],ext[1])
     ax.set_ylim(ext[2],ext[3])
-    legend=ax.legend(s,label,scatterpoints=1,loc=2,ncol=3,bbox_to_anchor=(0.0, 1.1), frameon=False)
+    legend=ax.legend(s,label,scatterpoints=1,loc=2,ncol=3,bbox_to_anchor=(0.0, 1.2), frameon=False)
     
     return legend
 
@@ -152,7 +153,6 @@ def draw_all(js, je, joined=False):
         cbar=plt.colorbar(cl,ticks=[0,20,40],cax=cax1,orientation='horizontal')
         cbar.ax.set_title(r'$age\,[\rm Myr]$')
         ax[0,1].text(-60,600,r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
-        fig.tight_layout()
         fig.savefig('all_{:04d}.png'.format(i),bbox_inches='tight')
         plt.close(fig)
 
@@ -174,7 +174,6 @@ def draw_all(js, je, joined=False):
 #        ax[1].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
 #        ax[1].set_ylabel(r'$T\,[{\rm K}]$')
 #        ax[0].text(2e-5,3e6,r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
-#        fig.tight_layout()
 #        fig.savefig('phase_{:04d}.png'.format(i),bbox_inches='tight')
 #        plt.close(fig)
 
@@ -182,10 +181,11 @@ def density_projection(js, je, joined=False):
     unit=pa.set_units(muH=1.4271)
     i=js
     if joined:
-        ds=pa.AthenaDataSet('../gc.{:04d}.vtk'.format(i))
+        ds=pa.AthenaDataSet('../joined/gc.{:04d}.vtk'.format(i))
     else:
         ds=pa.AthenaDataSet('../id0/gc.{:04d}.vtk'.format(i))
     #This is domain information
+    time=(ds.domain['time']*unit['time']).to(u.Myr).value
     xmin=ds.domain['left_edge']
     xmax=ds.domain['right_edge']
     dx=ds.domain['dx']
@@ -208,6 +208,7 @@ def density_projection(js, je, joined=False):
     
     rho=(ds.read_all_data('density')*unit['density']).to(u.M_sun/u.pc**3)
     den=(rho/unit['muH']).to(u.cm**-3)
+    T=ds.read_all_data('temperature')*unit['temperature']
     surfxy=((rho*dx[2]).sum(axis=0)).to(u.M_sun/u.pc**2)
     surfxz=((rho*dx[1]).sum(axis=1)).to(u.M_sun/u.pc**2)
     
@@ -215,16 +216,20 @@ def density_projection(js, je, joined=False):
     sp_file=ds.starfile
     sp=pa.read_starvtk(sp_file)
 
-    fig = plt.figure(figsize=(24,12))
-    gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[4,1],hspace=0.1)
+#    fig = plt.figure(figsize=(24,12))
+#    gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[4,1],hspace=0.1)
 #    fig = plt.figure(figsize=(24,15))
 #    gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[2,1],hspace=0.1)
+    fig = plt.figure(figsize=(15,15))
+    gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[1,2],hspace=0.1)
+#    fig = plt.figure(figsize=(15,15))
+#    gs = gridspec.GridSpec(2,2,figure=fig,height_ratios=[1,1],hspace=0.1)
     ax=np.ndarray((2,2),dtype=object)
     ax[0,0] = fig.add_subplot(gs[0,0])
     ax[0,1] = fig.add_subplot(gs[0,1])
     ax[1,0] = fig.add_subplot(gs[1,0])
     ax[1,1] = fig.add_subplot(gs[1,1])
-    
+
     ax[0,0].set_xlim(xmin[0],xmax[0])
     ax[0,0].set_ylim(xmin[1],xmax[1])
     ax[0,1].set_xlim(xmin[0],xmax[0])
@@ -236,7 +241,7 @@ def density_projection(js, je, joined=False):
 
     # xy projection
     proj_xy=ax[0,0].imshow(surfxy,norm=LogNorm(),origin='lower',zorder=0,
-            extent=xyextent,cmap='pink_r',clim=[1.e-1,1.e3])
+            extent=xyextent,cmap='pink_r',clim=[1.e0,1.e4])
     cbar=plt.colorbar(proj_xy,ax=ax[0,0])
     cbar.set_label(r'$\Sigma\,[M_{\odot} {\rm pc}^{-2}]$')
     ax[0,0].set_ylabel(r'$y\,[{\rm pc}]$')
@@ -244,15 +249,15 @@ def density_projection(js, je, joined=False):
     sp_legend(ax[0,0])
   
     # xy slice
-    slice_xy=ax[0,1].imshow(den[Nx[2]>>1,:,:],norm=LogNorm(),origin='lower',zorder=0,
-            extent=xyextent,cmap='BuPu',clim=[1.e-2,1.e4])
+    slice_xy=ax[0,1].imshow(T[Nx[2]>>1,:,:],norm=LogNorm(),origin='lower',zorder=0,
+            extent=xyextent,cmap='coolwarm',clim=[1e1,1e7])
     cbar=plt.colorbar(slice_xy,ax=ax[0,1])
-    cbar.set_label(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
+    cbar.set_label(r'$T\,[{\rm K}]$')
     ax[0,1].set_ylabel(r'$y\,[{\rm pc}]$')
 
     # xz projection
     proj_xz=ax[1,0].imshow(surfxz,norm=LogNorm(),origin='lower',zorder=0,
-            extent=xzextent,cmap='pink_r',clim=[1.e0,1.e4])
+            extent=xzextent,cmap='pink_r',clim=[1.e-2,1.e5])
     cbar=plt.colorbar(proj_xz,ax=ax[1,0])
     cbar.set_label(r'$\Sigma\,[M_{\odot} {\rm pc}^{-2}]$')
     ax[1,0].set_xlabel(r'$x\,[{\rm pc}]$')
@@ -260,28 +265,29 @@ def density_projection(js, je, joined=False):
 #    cl=sp_plot(ax[1,0],sp,proj='y')
 
     # xz slice
-    slice_xz=ax[1,1].imshow(den[:,Nx[1]>>1,:],norm=LogNorm(),origin='lower',zorder=0,
-            extent=xzextent,cmap='BuPu',clim=[1.e-2,1.e4])
+    slice_xz=ax[1,1].imshow(T[:,Nx[1]>>1,:],norm=LogNorm(),origin='lower',zorder=0,
+            extent=xzextent,cmap='coolwarm',clim=[1e1,1e7])
     cbar=plt.colorbar(slice_xz,ax=ax[1,1])
-    cbar.set_label(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
+    cbar.set_label(r'$T\,[{\rm K}]$')
     ax[1,1].set_xlabel(r'$x\,[{\rm pc}]$')
     ax[1,1].set_ylabel(r'$z\,[{\rm pc}]$')
 
     # annotations
-    cax1 = fig.add_axes([0.15, 0.93, 0.25, 0.015]) # [left, bottom, width, height]
+    cax1 = fig.add_axes([0.15, 0.93, 0.25, 0.012]) # [left, bottom, width, height]
     cbar=plt.colorbar(cl,ticks=[0,20,40],cax=cax1,orientation='horizontal')
     cbar.ax.set_title(r'$age\,[\rm Myr]$')
-    time_text=ax[0,1].text(-60,600,r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
-    fig.tight_layout()
+    time_text=ax[0,1].text(-60,350,r'$t={:.1f}\,\rm Myr$'.format(time))
     fig.savefig('all_{:04d}.png'.format(i),bbox_inches='tight')
 
     for i in range(js+1,je+1):
         if joined:
-            ds=pa.AthenaDataSet('../gc.{:04d}.vtk'.format(i))
+            ds=pa.AthenaDataSet('../joined/gc.{:04d}.vtk'.format(i))
         else:
             ds=pa.AthenaDataSet('../id0/gc.{:04d}.vtk'.format(i))
+        time=(ds.domain['time']*unit['time']).to(u.Myr).value
         rho=(ds.read_all_data('density')*unit['density']).to(u.M_sun/u.pc**3)
         den=(rho/unit['muH']).to(u.cm**-3)
+        T=ds.read_all_data('temperature')*unit['temperature']
         surfxy=((rho*dx[2]).sum(axis=0)).to(u.M_sun/u.pc**2)
         surfxz=((rho*dx[1]).sum(axis=1)).to(u.M_sun/u.pc**2)
         
@@ -296,18 +302,78 @@ def density_projection(js, je, joined=False):
         sp_legend(ax[0,0])
 
         # xy slice
-        slice_xy.set_data(den[Nx[2]>>1,:,:])
+        slice_xy.set_data(T[Nx[2]>>1,:,:])
 
         # xz projection
         proj_xz.set_data(surfxz)
 #        cl=sp_plot(ax[1,0],sp,proj='y')
 
         # xz slice
-        slice_xz.set_data(den[:,Nx[1]>>1,:])
+        slice_xz.set_data(T[:,Nx[1]>>1,:])
 
         # annotations
-        time_text.set_text(r'$t={:.1f}\,\rm Myr$'.format(0.1*i))
+        time_text.set_text(r'$t={:.1f}\,\rm Myr$'.format(time))
         fig.savefig('all_{:04d}.png'.format(i),bbox_inches='tight')
+
+def phase(js, je, joined=False):
+    unit=pa.set_units(muH=1.4271)
+    i=js
+    if joined:
+        ds=pa.AthenaDataSet('../joined/gc.{:04d}.vtk'.format(i))
+    else:
+        ds=pa.AthenaDataSet('../id0/gc.{:04d}.vtk'.format(i))
+    time=(ds.domain['time']*unit['time']).to(u.Myr).value
+    rho=(ds.read_all_data('density')*unit['density']).to(u.M_sun/u.pc**3)
+    den=(rho/unit['muH']).to(u.cm**-3)
+    T=ds.read_all_data('temperature')*unit['temperature']
+    prs=ds.read_all_data('pressure')*unit['pressure']
+    pok=(prs/c.k_B).to(u.K/u.cm**3)
+
+    fig, ax = plt.subplots(1,2,figsize=(18,10))
+    nmin=-3; nmax=5; Pmin=2; Pmax=8; Tmin=1; Tmax=7
+    H,xedges,yedges=histogram2d(np.log10(den.flatten().value),
+            np.log10(pok.flatten().value),bins=100,
+            range=[[nmin,nmax],[Pmin,Pmax]],density=True,
+            weights=den.flatten().value)
+    nP=ax[0].imshow(H.T,origin='lower',norm=LogNorm(),
+            extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]],cmap='Greys')
+    H,xedges,yedges=histogram2d(np.log10(den.flatten().value),
+            np.log10(T.flatten().value),bins=100,
+            range=[[nmin,nmax],[Tmin,Tmax]],density=True,
+            weights=den.flatten().value)
+    TP=ax[1].imshow(H.T,origin='lower',norm=LogNorm(),
+            extent=[xedges[0],xedges[-1],yedges[0],yedges[-1]],cmap='Greys')
+    ax[0].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
+    ax[0].set_ylabel(r'$P/k_{\rm B}\,[{\rm K\,cm^{-3}}]$')
+    ax[1].set_xlabel(r'$n_{\rm H}\,[{\rm cm}^{-3}]$')
+    ax[1].set_ylabel(r'$T\,[{\rm K}]$')
+    time_text=ax[0].text(2,2,r'$t={:.1f}\,\rm Myr$'.format(time))
+    fig.savefig('phase_{:04d}.png'.format(i),bbox_inches='tight')
+
+    for i in range(js+1,je+1):
+        if joined:
+            ds=pa.AthenaDataSet('../joined/gc.{:04d}.vtk'.format(i))
+        else:
+            ds=pa.AthenaDataSet('../id0/gc.{:04d}.vtk'.format(i))
+        time=(ds.domain['time']*unit['time']).to(u.Myr).value
+        rho=(ds.read_all_data('density')*unit['density']).to(u.M_sun/u.pc**3)
+        den=(rho/unit['muH']).to(u.cm**-3)
+        T=ds.read_all_data('temperature')*unit['temperature']
+        prs=ds.read_all_data('pressure')*unit['pressure']
+        pok=(prs/c.k_B).to(u.K/u.cm**3)
+
+        H,xedges,yedges=histogram2d(np.log10(den.flatten().value),
+                np.log10(pok.flatten().value),bins=100,
+                range=[[nmin,nmax],[Pmin,Pmax]],density=True,
+                weights=den.flatten().value)
+        nP.set_data(H.T)
+        H,xedges,yedges=histogram2d(np.log10(den.flatten().value),
+                np.log10(T.flatten().value),bins=100,
+                range=[[nmin,nmax],[Tmin,Tmax]],density=True,
+                weights=den.flatten().value)
+        TP.set_data(H.T)
+        time_text.set_text(r'$t={:.1f}\,\rm Myr$'.format(time))
+        fig.savefig('phase_{:04d}.png'.format(i),bbox_inches='tight')
 
 def tmporary():
     i=1
@@ -336,7 +402,7 @@ def draw_hst(Lx,Ly,Lz,tmax=50):
     vol = Lx*Ly*Lz
     print("volume = {:e} pc^3".format(vol))
     unit=pa.set_units(muH=1.4271)
-    ds = np.loadtxt("../id0/gc.hst")
+    ds = np.loadtxt("../joined/id0/gc.hst")
     t = ds[:,0]*unit['time']
     Mtot = ds[:,2]*vol*unit['mass']
     Pth = ds[:,38]*unit['pressure']
@@ -347,25 +413,27 @@ def draw_hst(Lx,Ly,Lz,tmax=50):
     Ms = ds[:,57]*vol*unit['mass']
     sigsfr = ds[:,54]*u.M_sun/u.Myr/u.pc**2
     sfr = (sigsfr*Lx*Ly*u.pc**2).to(u.M_sun/u.yr)
-
-    plt.plot(t, Mc+Mu, 'b-', label=r"$M_u+M_c$")
-    plt.plot(t, Mw, 'r-', label=r"$M_w$")
-    plt.plot(t, Mtot, 'k-', label=r"$M_{\rm tot}$")
-    plt.plot(t, Ms, 'k--', label=r"$M_{\rm sp}$")
+    plt.clf()
+    plt.semilogy(t, Mc+Mu, 'b-', label=r"$M_u+M_c$")
+    plt.semilogy(t, Mw, 'r-', label=r"$M_w$")
+    plt.semilogy(t, Mtot, 'k-', label=r"$M_{\rm tot}$")
+    plt.semilogy(t, Ms, 'k--', label=r"$M_{\rm sp}$")
     plt.xlabel("time ["+r"${\rm Myr}$"+"]")
     plt.ylabel("mass ["+r"${M_\odot}$"+"]")
     plt.xlim(0,tmax)
-    plt.ylim(0,5e7)
+    plt.ylim(1e6,1e8)
+#    plt.ylim(0,1e7)
     plt.legend()
     plt.tight_layout()
     plt.savefig("mass.pdf")
     plt.clf()
 
-    plt.plot(t, sfr, 'k-')
+    plt.semilogy(t, sfr, 'k-')
     plt.xlabel("time ["+r"${\rm Myr}$"+"]")
     plt.ylabel("star formation rate ["+r"$M_\odot\,{\rm yr}^{-1}$"+"]")
     plt.xlim(0,tmax)
-    plt.ylim(0,1)
+    plt.ylim(1e-1,1e1)
+#    plt.ylim(0,0.2)
     plt.tight_layout()
     plt.savefig("sfr.pdf")
     plt.clf()
@@ -375,5 +443,7 @@ if __name__ == '__main__':
     print("Number of arguments: {0}".format(len(sys.argv)))
     print("draw images from time {0} to {1}".format(sys.argv[1],sys.argv[2]))
     density_projection(int(sys.argv[1]),int(sys.argv[2]),joined=True)
+    phase(int(sys.argv[1]),int(sys.argv[2]),joined=True)
 #    draw_all(int(sys.argv[1]),int(sys.argv[2]),joined=True)
-#    draw_hst(600,600,1200,tmax=350)
+    draw_hst(600,600,1200,tmax=700)
+#    draw_hst(1024,1024,1024,tmax=350)
