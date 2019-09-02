@@ -1,6 +1,25 @@
 import numpy as np
+from scipy.special import expn
+
+def ftau(tauperp, tau=0):
+    """plane-parallel ftau
+    tauperp: Optical thickness of the FUV-emitting slab.
+    tau    : Optical depth coordinate inside the slab (tau=0 for midplane).
+             -tauperp/2 < tau < tauperp/2
+    """
+    return (1 - 0.5*expn(2,0.5*tauperp+tau) - 0.5*expn(2,0.5*tauperp-tau))\
+            /tauperp 
+def ftau_thin(tauperp):
+    """ftau in optically thin limit"""
+    return  0.5*(1.0-np.euler_gamma-np.log(0.5*tauperp))
+
+def ftau_thick(tauperp):
+    """ftau in optically thick limit"""
+    return 1.0/tauperp
 
 class theories(object):
+    """ Global star formation theories
+    """
 
     def __init__(self, ):
         pass
