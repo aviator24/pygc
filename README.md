@@ -1,1 +1,2 @@
-# python scripts for TIGRESS-GC
+# pygc
+python scripts for galactic center TIGRESS simulation
