@@ -1,15 +1,14 @@
 from pyathena.classic.cooling import coolftn
 from pyathena.util.wmean import wmean
+from pyathena.util.units import Units
 import numpy as np
 import xarray as xr
-def add_derived_fields(s, dat, fields, in_place=True):
+def add_derived_fields(dat, fields=[], in_place=False):
     """
     Function to add derived fields in DataSet.
 
     Parameters
     ----------
-    s : LoadSim
-        LoadSim instance for your simulation (e.g., LoadSimTIGRESSGC).
     dat : Dataset
         xarray Dataset of variables
     fields : list
@@ -21,6 +20,9 @@ def add_derived_fields(s, dat, fields, in_place=True):
     dat : Dataset
         new xarray Dataset with derived_field
     """
+    dz = (dat.z[1]-dat.z[0]).values[()]
+    u = Units()
+
     if not in_place:
         tmp = dat.copy()
 
@@ -34,9 +36,9 @@ def add_derived_fields(s, dat, fields, in_place=True):
 
     if 'surf' in fields:
         if in_place:
-            dat['surf'] = (dat.density*s.domain['dx'][2]).sum(dim='z')
+            dat['surf'] = (dat.density*dz).sum(dim='z')
         else:
-            tmp['surf'] = (dat.density*s.domain['dx'][2]).sum(dim='z')
+            tmp['surf'] = (dat.density*dz).sum(dim='z')
         
     if 'sz' in fields:
         if in_place:
@@ -52,8 +54,8 @@ def add_derived_fields(s, dat, fields, in_place=True):
 
     if 'T' in fields:
         cf = coolftn()
-        pok = dat.pressure*s.u.pok
-        T1 = pok/dat.density*s.u.muH
+        pok = dat.pressure*u.pok
+        T1 = pok/dat.density*u.muH
         if in_place:
             dat['T'] = xr.DataArray(cf.get_temp(T1.values), coords=T1.coords,
                     dims=T1.dims)
@@ -67,9 +69,9 @@ def add_derived_fields(s, dat, fields, in_place=True):
         phir.loc[{'z':phir.z[-1]}] = 3*phir.isel(z=-2) - 3*phir.isel(z=-3) + phir.isel(z=-4)
         phil.loc[{'z':phir.z[0]}] = 3*phil.isel(z=1) - 3*phil.isel(z=2) + phil.isel(z=3)
         if in_place:
-            dat['gz_sg'] = (phil-phir)/s.domain['dx'][2]
+            dat['gz_sg'] = (phil-phir)/dz
         else:
-            tmp['gz_sg'] = (phil-phir)/s.domain['dx'][2]
+            tmp['gz_sg'] = (phil-phir)/dz
 
     if in_place:
         return dat
