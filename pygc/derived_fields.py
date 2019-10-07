@@ -1,8 +1,9 @@
 from pyathena.classic.cooling import coolftn
-from pyathena.util.wmean import wmean
+from .wmean import wmean
 from pyathena.util.units import Units
 import numpy as np
 import xarray as xr
+
 def add_derived_fields(dat, fields=[], in_place=False):
     """
     Function to add derived fields in DataSet.
