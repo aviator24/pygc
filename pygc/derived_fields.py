@@ -21,6 +21,7 @@ def add_derived_fields(dat, fields=[], in_place=False):
     dat : Dataset
         new xarray Dataset with derived_field
     """
+
     dz = (dat.z[1]-dat.z[0]).values[()]
     u = Units()
 
