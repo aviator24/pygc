@@ -22,6 +22,8 @@ def add_derived_fields(dat, fields=[], in_place=False):
         new xarray Dataset with derived_field
     """
 
+    dx = (dat.x[1]-dat.x[0]).values[()]
+    dy = (dat.y[1]-dat.y[0]).values[()]
     dz = (dat.z[1]-dat.z[0]).values[()]
     u = Units()
 
@@ -59,6 +61,15 @@ def add_derived_fields(dat, fields=[], in_place=False):
             dat['Pturb'] = dat.density*dat.velocity3**2
         else:
             tmp['Pturb'] = dat.density*dat.velocity3**2
+
+    if 'Pgrav' in fields:
+        if not 'gz_sg' in dat.data_vars:
+            add_derived_fields(dat, fields='gz_sg', in_place=True)
+        Pgrav = (dat.density*dat.gz_sg).where(dat.z>0).sum(dim='z')*dz
+        if in_place:
+            dat['Pgrav'] = Pgrav
+        else:
+            tmp['Pgrav'] = Pgrav
 
     if 'T' in fields:
         cf = coolftn()

@@ -38,7 +38,7 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
     # gravitational field exists even when the matter does not exist.
     dat.gravitational_potential.loc[{'phase':'2p'}] = \
             dat.gravitational_potential.loc[{'phase':'all'}]
-    add_derived_fields(dat, fields=['R','gz_sg'], in_place=True)
+    add_derived_fields(dat, fields=['R','gz_sg','Pgrav'], in_place=True)
 
     # loop through vtks
     for num in nums[1:]:
@@ -51,7 +51,7 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
         # gravitational field exists even when the matter does not exist.
         tmp.gravitational_potential.loc[{'phase':'2p'}] = \
                 tmp.gravitational_potential.loc[{'phase':'all'}]
-        add_derived_fields(tmp, fields=['R','gz_sg'], in_place=True)
+        add_derived_fields(tmp, fields=['R','gz_sg','Pgrav'], in_place=True)
 
         # combine
         dat += tmp
