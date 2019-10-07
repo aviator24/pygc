@@ -54,6 +54,12 @@ def add_derived_fields(dat, fields=[], in_place=False):
         else:
             tmp.coords['R'] = np.sqrt(dat.x**2 + dat.y**2)
 
+    if 'Pturb' in fields:
+        if in_place:
+            dat['Pturb'] = dat.density*dat.velocity3**2
+        else:
+            tmp['Pturb'] = dat.density*dat.velocity3**2
+
     if 'T' in fields:
         cf = coolftn()
         pok = dat.pressure*u.pok
