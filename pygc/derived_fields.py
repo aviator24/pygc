@@ -1,5 +1,5 @@
 from pyathena.classic.cooling import coolftn
-from .wmean import wmean
+from .xrutil import wmean
 from pyathena.util.units import Units
 import numpy as np
 import xarray as xr

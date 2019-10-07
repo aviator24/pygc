@@ -4,7 +4,7 @@ import pandas as pd
 import numpy as np
 import xarray as xr
 from pyathena.classic.cooling import coolftn
-from pygc.wmean import wmean
+from pygc.xrutil import wmean
 import pickle
 
 Thot2, Thot1, Twarm, Tcold = 5.e5, 2.e4, 5050, 184.
