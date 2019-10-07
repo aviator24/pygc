@@ -1,5 +1,11 @@
 import numpy as np
 from scipy.special import expn
+"""
+=======================================
+Description | collection of SF theories
+Author      | Sanghyuk Moon
+=======================================
+"""
 
 def ftau(tauperp, tau=0):
     """plane-parallel ftau
@@ -29,11 +35,11 @@ class theories(object):
         Ostriker & Shetty 2011 turbulence-regulated star formation model
        
         INPUT
-        =======================================================================
+        ======================================================================
         surf    : gas surface density in units of M_sun pc^-2
 
         PARAMETERS
-        =======================================================================
+        ======================================================================
         chi     : stellar gravity parameter
         fp      : momentum injection efficiency (1~2)
         vsnr    : radial momentum per unit mass of stars formed (3000 km s^-1)
@@ -42,12 +48,12 @@ class theories(object):
         kap     : IR opacity in units of 10 cm^2 g^-1
 
         RETURN
-        =======================================================================
+        ======================================================================
         sfrsurf : star formation rate surface density in units of
                   M_sun yr^-1 kpc^-2
 
         TODO
-        =======================================================================
+        ======================================================================
         When stellar gravity dominates (chi > 1), chi should not regarded as
         independent parameter, because it is proportional to the inverse of
         gas surface density. In this case, the star formation law would change
