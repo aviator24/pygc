@@ -2,7 +2,40 @@ from pyathena.classic.cooling import coolftn
 from .xrutil import wmean
 from pyathena.util.units import Units
 import numpy as np
+import pandas as pd
 import xarray as xr
+
+def set_Pdrive(s, dat):
+    """Return momentum injection rate per area (pressure) from SNe."""
+
+    le1, le2 = s.domain['le'][0], s.domain['le'][1]
+    dx1, dx2 = s.domain['dx'][0], s.domain['dx'][1]
+    sn = s.read_sn()[['time','x1sn','x2sn']]
+    sn = sn[(sn.time > dat.ts)&(sn.time < dat.te)]
+    sn['i'] = np.floor((sn.x1sn-le1)/dx1).astype('int32')
+    sn['j'] = np.floor((sn.x2sn-le2)/dx2).astype('int32')
+    # count the number of SNe exploding in the same i,j grid position.
+    sn = sn.groupby(['j','i']).size()
+    # make Nx*Ny grid and project sn count onto it
+    i = np.arange(s.domain['Nx'][0])
+    j = np.arange(s.domain['Nx'][1])
+    idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
+    NSNe = pd.Series(np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
+            index=idx)
+    NSNe[sn.index] = sn
+    NSNe = NSNe.unstack().values
+
+    NSNe = xr.DataArray(np.tile(NSNe.flatten(),2).reshape(
+        2, NSNe.shape[0], NSNe.shape[1]), dims=['phase','y','x'],
+        coords=[dat.coords['phase'], dat.coords['y'], dat.coords['x']])
+    mask = dat.sel(phase='2p').interp(z=0).density > 1e-35
+    NSNe.loc[{'phase':'2p'}] = NSNe.sel(phase='2p').where(mask, other=0.)
+
+    n0 = dat.density.interp(z=0).mean().values
+    pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
+    Pdrive = 0.25*pstar*NSNe/(dat.te-dat.ts)
+    dat['NSNe'] = NSNe
+    dat['Pdrive'] = Pdrive
 
 def dpdt_sn(s, dat):
     """Return vertical momentum injection rate from SNe during ts-te.
