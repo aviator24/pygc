@@ -4,22 +4,48 @@ from pyathena.util.units import Units
 import numpy as np
 import xarray as xr
 
-def add_derived_fields(dat, fields=[], in_place=False):
-    """
-    Function to add derived fields in DataSet.
+def count_SNe(sn, ts, te):
+    """Count the number of SNe exploded between time ts and te [Myr]."""
+    slc = sn[['time','x1sn','x2sn','x3sn']][(sn.time > ts)&(sn.time < te)]
+    return len(slc)
+
+#def mask_sn(sne, mask):
+#    msne = pd.DataFrame()
+#    for i in range(len(sne)):
+#        sn = sne.iloc[i]
+#        ip,jp,kp = cc_ijk(sn.x1sn, sn.x2sn, sn.x3sn)
+#        if mask[kp,jp,ip]:
+#            msne = msne.append(sn)
+
+def dpdt_sn(s, dat, ts, te):
+    """Return vertical momentum injection rate from SNe during ts-te.
 
     Parameters
     ----------
-    dat : Dataset
-        xarray Dataset of variables
-    fields : list
-        list containing derived fields to be added.
-        ex) ['H', 'surf', 'T']
+    s   : LoadSim instance
+    dat : Time-averaged Dataset
+    ts  : start time [Myr]
+    te  : end time [Myr]
 
-    Return
-    ------
-    dat : Dataset
-        new xarray Dataset with derived_field
+    Notes
+    ----
+    Pdrive = dpdt_sn / area
+    """ # TODO ts, te may be inferred from dat
+
+    sn = s.read_sn()
+    NSNe = count_SNe(sn, ts, te)
+    n0 = dat.density.interp(z=0).mean().values
+    pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
+    return 0.25*pstar*NSNe/(te-ts)
+
+def add_derived_fields(dat, fields=[], in_place=False):
+    """Add derived fields in a Dataset
+
+    Parameters
+    ----------
+    dat    : xarray Dataset of variables
+    fields : list containing derived fields to be added.
+               ex) ['H', 'surf', 'T']
     """
 
     dx = (dat.x[1]-dat.x[0]).values[()]
@@ -93,6 +119,6 @@ def add_derived_fields(dat, fields=[], in_place=False):
             tmp['gz_sg'] = (phil-phir)/dz
 
     if in_place:
-        return dat
+        return True
     else:
         return tmp

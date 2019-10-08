@@ -6,9 +6,9 @@ import pandas as pd
 import numpy as np
 import pickle
 
+#@profile
 def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
-    """
-    Function to time-average Datasets
+    """Do time-avearge on Datasets and return the averaged Dataset.
 
     Parameters
     ----------
@@ -18,11 +18,6 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
         list of snapshot numbers
     Twarm : float
         A demarcation temperature for two-phase medium
-
-    Return
-    ------
-    dat : Dataset
-        time-averaged Dataset
     """
 
     cf = coolftn()
@@ -55,6 +50,7 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
 
         # combine
         dat += tmp
+
     if not sum:
         dat /= len(nums)
     return dat
@@ -93,18 +89,23 @@ if __name__ == '__main__':
     mynums = COMM.scatter(nums, root=0)
     print('[rank, mysteps]:', COMM.rank, mynums)
 
+    # load simulation and perform local time-average
     s = LoadSimTIGRESSGC("/data/shmoon/TIGRESS-GC/{}".format(args.model))
     dat = dataset_tavg(s, mynums, sum=True)
 
+    # dump local time-averages
     with open("{}.tavg.{}".format(args.model, COMM.rank), "wb") as handle:
         pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     COMM.Barrier()
 
+    # combine local time-averages into global time-average dump
     if COMM.rank == 0:
         for i in range(1, COMM.size):
             dat += pickle.load(open("{}.tavg.{}".format(args.model, COMM.rank),
                 "rb"))
         dat /= (args.end - args.start + 1)
+#        dat['ts'] = s.load_vtk(num=args.start).domain['time']*s.u.Myr
+#        dat['te'] = s.load_vtk(num=args.end).domain['time']*s.u.Myr
         with open("{}.tavg".format(args.model), "wb") as handle:
             pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
