@@ -4,11 +4,6 @@ from pyathena.util.units import Units
 import numpy as np
 import xarray as xr
 
-def count_SNe(sn, ts, te):
-    """Count the number of SNe exploded between time ts and te [Myr]."""
-    slc = sn[['time','x1sn','x2sn','x3sn']][(sn.time > ts)&(sn.time < te)]
-    return len(slc)
-
 #def mask_sn(sne, mask):
 #    msne = pd.DataFrame()
 #    for i in range(len(sne)):
@@ -30,8 +25,8 @@ def dpdt_sn(s, dat):
     Pdrive = dpdt_sn / area
     """
 
-    sn = s.read_sn()
-    NSNe = count_SNe(sn, dat.ts, dat.te)
+    sn = s.read_sn()[(sn.time > dat.ts)&(sn.time < dat.te)]
+    NSNe = len(sn)
     n0 = dat.density.interp(z=0).mean().values
     pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
     return 0.25*pstar*NSNe/(dat.te-dat.ts)
