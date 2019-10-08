@@ -17,26 +17,24 @@ def count_SNe(sn, ts, te):
 #        if mask[kp,jp,ip]:
 #            msne = msne.append(sn)
 
-def dpdt_sn(s, dat, ts, te):
+def dpdt_sn(s, dat):
     """Return vertical momentum injection rate from SNe during ts-te.
 
     Parameters
     ----------
     s   : LoadSim instance
     dat : Time-averaged Dataset
-    ts  : start time [Myr]
-    te  : end time [Myr]
 
     Notes
     ----
     Pdrive = dpdt_sn / area
-    """ # TODO ts, te may be inferred from dat
+    """
 
     sn = s.read_sn()
-    NSNe = count_SNe(sn, ts, te)
+    NSNe = count_SNe(sn, dat.ts, dat.te)
     n0 = dat.density.interp(z=0).mean().values
     pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
-    return 0.25*pstar*NSNe/(te-ts)
+    return 0.25*pstar*NSNe/(dat.te-dat.ts)
 
 def add_derived_fields(dat, fields=[], in_place=False):
     """Add derived fields in a Dataset
