@@ -18,7 +18,7 @@ def dpdt_sn(s, dat):
     """
 
     sn = s.read_sn()[['time','x1sn','x2sn','x3sn']]
-    sn = [(sn.time > dat.ts)&(sn.time < dat.te)]
+    sn = sn[(sn.time > dat.ts)&(sn.time < dat.te)]
     NSNe = len(sn)
     n0 = dat.density.interp(z=0).mean().values
     pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
