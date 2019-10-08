@@ -105,7 +105,7 @@ if __name__ == '__main__':
             dat += pickle.load(open("{}.tavg.{}".format(args.model, COMM.rank),
                 "rb"))
         dat /= (args.end - args.start + 1)
-        dat['ts'] = s.load_vtk(num=args.start).domain['time']*s.u.Myr
-        dat['te'] = s.load_vtk(num=args.end).domain['time']*s.u.Myr
+        dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time']*s.u.Myr,
+                          'te':s.load_vtk(num=args.end).domain['time']*s.u.Myr})
         with open("{}.tavg".format(args.model), "wb") as handle:
             pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
