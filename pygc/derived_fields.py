@@ -4,14 +4,6 @@ from pyathena.util.units import Units
 import numpy as np
 import xarray as xr
 
-#def mask_sn(sne, mask):
-#    msne = pd.DataFrame()
-#    for i in range(len(sne)):
-#        sn = sne.iloc[i]
-#        ip,jp,kp = cc_ijk(sn.x1sn, sn.x2sn, sn.x3sn)
-#        if mask[kp,jp,ip]:
-#            msne = msne.append(sn)
-
 def dpdt_sn(s, dat):
     """Return vertical momentum injection rate from SNe during ts-te.
 
