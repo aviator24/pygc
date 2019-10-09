@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
+u = Units()
 def set_Pdrive(s, dat):
     """Return momentum injection rate per area (pressure) from SNe."""
 
@@ -70,7 +71,6 @@ def add_derived_fields(dat, fields=[], in_place=False):
     dx = (dat.x[1]-dat.x[0]).values[()]
     dy = (dat.y[1]-dat.y[0]).values[()]
     dz = (dat.z[1]-dat.z[0]).values[()]
-    u = Units()
 
     if not in_place:
         tmp = dat.copy()

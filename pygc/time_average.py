@@ -6,7 +6,7 @@ import pandas as pd
 import numpy as np
 import pickle
 
-#@profile
+cf = coolftn()
 def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
     """Do time-avearge on Datasets and return the averaged Dataset.
 
@@ -20,7 +20,6 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
         A demarcation temperature for two-phase medium
     """
 
-    cf = coolftn()
     fields = ['density','velocity','pressure','gravitational_potential']
 
     # load a first vtk
