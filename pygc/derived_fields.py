@@ -35,7 +35,7 @@ def set_Pdrive(s, dat):
     # TODO How about using average density near the explosion site?
     n0 = dat.density.interp(z=0).mean().values
     pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
-    Pdrive = 0.25*pstar*NSNe/(dat.te-dat.ts)
+    Pdrive = 0.25*pstar*NSNe/(dat.te-dat.ts)/dx1/dx2
     dat['NSNe'] = NSNe
     dat['Pdrive'] = Pdrive
 
