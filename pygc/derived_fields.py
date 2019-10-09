@@ -137,7 +137,5 @@ def add_derived_fields(dat, fields=[], in_place=False):
         else:
             tmp['gz_sg'] = (phil-phir)/dz
 
-    if in_place:
-        return True
-    else:
+    if not in_place:
         return tmp
