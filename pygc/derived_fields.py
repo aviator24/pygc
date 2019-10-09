@@ -32,6 +32,7 @@ def set_Pdrive(s, dat):
     mask = dat.sel(phase='2p').interp(z=0).density > 1e-35
     NSNe.loc[{'phase':'2p'}] = NSNe.sel(phase='2p').where(mask, other=0.)
 
+    # TODO How about using average density near the explosion site?
     n0 = dat.density.interp(z=0).mean().values
     pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
     Pdrive = 0.25*pstar*NSNe/(dat.te-dat.ts)
