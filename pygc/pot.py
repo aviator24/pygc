@@ -1,7 +1,7 @@
 import numpy as np
 from astropy import units as au
 from astropy import constants as ac
-from pyathena.util.units import Units()
+from pyathena.util.units import Units
 
 u = Units()
 
