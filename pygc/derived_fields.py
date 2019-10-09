@@ -90,10 +90,12 @@ def add_derived_fields(dat, fields=[], in_place=False):
             tmp['surf'] = (dat.density*dz).sum(dim='z')
         
     if 'sz' in fields:
+        if not 'gz_sg' in dat.data_vars:
+            add_derived_fields(dat, fields='Pturb', in_place=True)
         if in_place:
-            dat['sz'] = np.sqrt(dat.velocity3.interp(z=0)**2)
+            dat['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
         else:
-            tmp['sz'] = np.sqrt(dat.velocity3.interp(z=0)**2)
+            tmp['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
 
     if 'R' in fields:
         if in_place:
