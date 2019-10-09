@@ -26,12 +26,8 @@ def set_Pdrive(s, dat):
     pSNe[sn.index] = sn.pSNe
     pSNe = pSNe.unstack().values
 
-    pSNe = xr.DataArray(np.tile(pSNe.flatten(),2).reshape(
-        2, pSNe.shape[0], pSNe.shape[1]), dims=['phase','y','x'],
-        coords=[dat.coords['phase'], dat.coords['y'], dat.coords['x']])
-    mask = dat.sel(phase='2p').interp(z=0).density > 1e-35
-    pSNe.loc[{'phase':'2p'}] = pSNe.sel(phase='2p').where(mask, other=0.)
-
+    pSNe = xr.DataArray(pSNe, dims=['y','x'],
+            coords=[dat.coords['y'], dat.coords['x']])
     Pdrive = 0.25*pSNe/(dat.te-dat.ts)/dx1/dx2/(s.u.Msun/s.u.Myr)
     dat['Pdrive'] = Pdrive
 

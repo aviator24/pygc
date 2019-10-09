@@ -5,19 +5,18 @@ import xarray as xr
 import pandas as pd
 import numpy as np
 import pickle
+import os
 
+Twarm = 2.0e4
 cf = coolftn()
-def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
-    """Do time-avearge on Datasets and return the averaged Dataset.
+def dataset_tavg(s, nums, twophase=False):
+    """Do time-summation on Datasets and return the summed Dataset.
 
     Parameters
     ----------
-    s : LoadSimTIGRESSGC
-        LoadSimTIGRESSGC instance to be analyzed.
-    nums : int
-        list of snapshot numbers
-    Twarm : float
-        A demarcation temperature for two-phase medium
+    s : LoadSimTIGRESSGC instance to be analyzed.
+    nums :list of snapshot numbers to add
+    twophase : include two-phase gas only
     """
 
     fields = ['density','velocity','pressure','gravitational_potential']
@@ -25,33 +24,27 @@ def dataset_tavg(s, nums, Twarm=2.0e4, sum=False):
     # load a first vtk
     ds = s.load_vtk(num=nums[0])
     dat = ds.get_field(fields, as_xarray=True)
-    add_derived_fields(dat, fields=['T','Pturb'], in_place=True)
-    tmp = dat.where(dat.T < Twarm, other=1e-38) # two-phase medium
-    dat = xr.concat([dat,tmp], pd.Index(['all', '2p'], name='phase'))
-    dat = dat.drop('T')
-    # gravitational field exists even when the matter does not exist.
-    dat.gravitational_potential.loc[{'phase':'2p'}] = \
-            dat.gravitational_potential.loc[{'phase':'all'}]
-    add_derived_fields(dat, fields=['R','gz_sg','Pgrav'], in_place=True)
+    if twophase:
+        Phi = dat.gravitational_potential
+        add_derived_fields(dat, fields='T', in_place=True)
+        dat = dat.where(dat.T < Twarm, other=0)
+        dat = dat.drop('T')
+        dat['gravitational_potential'] = Phi
+    add_derived_fields(dat, fields=['R','Pturb','Pgrav'], in_place=True)
 
     # loop through vtks
     for num in nums[1:]:
         ds = s.load_vtk(num=num)
         tmp = ds.get_field(fields, as_xarray=True)
-        add_derived_fields(tmp, fields=['T','Pturb'], in_place=True)
-        tmp2 = tmp.where(tmp.T < Twarm, other=1e-38)
-        tmp = xr.concat([tmp,tmp2], pd.Index(['all', '2p'], name='phase'))
-        tmp = tmp.drop('T')
-        # gravitational field exists even when the matter does not exist.
-        tmp.gravitational_potential.loc[{'phase':'2p'}] = \
-                tmp.gravitational_potential.loc[{'phase':'all'}]
-        add_derived_fields(tmp, fields=['R','gz_sg','Pgrav'], in_place=True)
-
-        # combine
+        if twophase:
+            Phi = tmp.gravitational_potential
+            add_derived_fields(tmp, fields='T', in_place=True)
+            tmp = tmp.where(tmp.T < Twarm, other=0)
+            tmp = tmp.drop('T')
+            tmp['gravitational_potential'] = Phi
+        add_derived_fields(tmp, fields=['R','Pturb','Pgrav'], in_place=True)
+        # add
         dat += tmp
-
-    if not sum:
-        dat /= len(nums)
     return dat
 
 if __name__ == '__main__':
@@ -70,7 +63,16 @@ if __name__ == '__main__':
     parser.add_argument('end', type=int, help='end index')
     parser.add_argument('-v', '--verbosity', action='count',
                         help='increase output verbosity')
+    parser.add_argument('--twophase', action='store_true',
+                        help='include two-phase gas only')
     args = parser.parse_args()
+
+    if args.twophase:
+        fname_local = "{}.tavg.2p.{}".format(args.model, COMM.rank)
+        fname_global = "{}.tavg.2p".format(args.model)
+    else:
+        fname_local = "{}.tavg.{}".format(args.model, COMM.rank)
+        fname_global = "{}.tavg".format(args.model)
 
     if COMM.rank == 0:
         if args.verbosity is not None:
@@ -80,6 +82,7 @@ if __name__ == '__main__':
                 print("selected model: {}".format(args.model))
                 print("generating time average between snapshot {} to {}"
                         .format(args.start, args.end))
+
     nums = np.arange(args.start,args.end+1)
     if COMM.rank == 0:
         nums = split_container(nums, COMM.size)
@@ -90,10 +93,10 @@ if __name__ == '__main__':
 
     # load simulation and perform local time-average
     s = LoadSimTIGRESSGC("/data/shmoon/TIGRESS-GC/{}".format(args.model))
-    dat = dataset_tavg(s, mynums, sum=True)
+    dat = dataset_tavg(s, mynums, twophase=args.twophase)
 
-    # dump local time-averages
-    with open("{}.tavg.{}".format(args.model, COMM.rank), "wb") as handle:
+    # dump local sum
+    with open(fname_local, "wb") as handle:
         pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
     COMM.Barrier()
@@ -101,10 +104,12 @@ if __name__ == '__main__':
     # combine local time-averages into global time-average dump
     if COMM.rank == 0:
         for i in range(1, COMM.size):
-            dat += pickle.load(open("{}.tavg.{}".format(args.model, COMM.rank),
-                "rb"))
+            dat += pickle.load(open(fname_local, "rb"))
         dat /= (args.end - args.start + 1)
         dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time']*s.u.Myr,
-                          'te':s.load_vtk(num=args.end).domain['time']*s.u.Myr})
-        with open("{}.tavg".format(args.model), "wb") as handle:
+                          'te':s.load_vtk(num=args.end).domain['time']*s.u.Myr,
+                          'domain':s.domain})
+        # dump global time-average
+        with open(fname_global, "wb") as handle:
             pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    os.remove(fname_local)
