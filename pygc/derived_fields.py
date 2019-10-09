@@ -1,5 +1,5 @@
 from pyathena.classic.cooling import coolftn
-from .xrutil import wmean
+from .util import wmean
 from pyathena.util.units import Units
 import numpy as np
 import pandas as pd
