@@ -1,6 +1,9 @@
 import numpy as np
 from astropy import units as au
 from astropy import constants as ac
+from pyathena.util.units import Units()
+
+u = Units()
 
 def Mbul(r, r_b=120, rho_b=265):
     """Bulge mass within radius r [pc]
@@ -39,12 +42,15 @@ def rhobul_eff(R, z, r_b=120, rho_b=265):
     return rho_b*(r_b/r)**2*(r_b/r*np.log(r/r_b + np.sqrt(1.+r**2/r_b**2))
             - 1./np.sqrt(1.+r**2/r_b**2))
 
-def gz_ext(R, z, r_b=120, rho_b=265):
+def gz_ext(R, z, r_b=120, rho_b=265, TIGRESS_unit=False):
     """Vertical gravitational acceleration at (R,z) [pc]
     return in km/s/Myr
     """
-    return -4*np.pi*ac.G.to("km s^-1 Myr^-1 Msun^-1 pc^2").value\
+    gz = -4*np.pi*ac.G.to("km s^-1 Myr^-1 Msun^-1 pc^2").value\
             *rhobul_eff(R,z,r_b=r_b,rho_b=rho_b)*z
+    if TIGRESS_unit:
+        gz *= u.Myr
+    return gz
 
 def gz_ext_linear(R, z, r_b=120, rho_b=265):
     """Linearly approximated vertical gravitational acceleration at (R,z) [pc]
