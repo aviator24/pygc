@@ -1,11 +1,18 @@
 from pyathena.classic.cooling import coolftn
 from .util import wmean
+from .pot import gz_ext
 from pyathena.util.units import Units
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 u = Units()
+
+def set_Pgrav(dat):
+    res = (dat.density*(dat.gz_sg+gz_ext(dat.R, dat.z, TIGRESS_unit=True))*
+            dat.domain['dx'][2]).where(dat.z>0).sum(dim='z')
+    dat['Pgrav'] = -res
+
 def set_Pdrive(s, dat):
     """Return momentum injection rate per area (pressure) from SNe."""
 
