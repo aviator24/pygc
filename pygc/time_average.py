@@ -112,4 +112,5 @@ if __name__ == '__main__':
         # dump global time-average
         with open(fname_global, "wb") as handle:
             pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    COMM.Barrier()
     os.remove(fname_local)
