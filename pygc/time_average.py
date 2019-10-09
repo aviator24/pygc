@@ -104,7 +104,7 @@ if __name__ == '__main__':
     # combine local time-averages into global time-average dump
     if COMM.rank == 0:
         for i in range(1, COMM.size):
-            dat += pickle.load(open(fname_local, "rb"))
+            dat += pickle.load(open(fname_global+".{}".format(i), "rb"))
         dat /= (args.end - args.start + 1)
         dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time']*s.u.Myr,
                           'te':s.load_vtk(num=args.end).domain['time']*s.u.Myr,
