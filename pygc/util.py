@@ -24,6 +24,13 @@ def wmean(arr, weights, dim):
         notnull = arr.notnull()
         return (arr * weights).sum(dim=dim) / weights.where(notnull).sum(dim=dim)
 
+def mask_ring(dat, mf_crit=0.9, Rmax=180):
+    """mask ring by applying density threshold and radius cut"""
+    rho, mf = _get_cummass(dat)
+    rhoth = rho[np.searchsorted(-mf, -mf_crit)]
+    mask = (dat.density > rhoth)&(dat.R < Rmax)
+    return rhoth, mask
+
 def _Mabove(dat, rho_th):
     """Return total gas mass above threshold density rho_th."""
     rho = dat.density
@@ -39,10 +46,3 @@ def _get_cummass(dat):
     for i, rho_th in enumerate(thresholds):
         cummass[i] = _Mabove(dat, rho_th) / Mtot
     return thresholds, cummass
-
-def mask_ring(dat, mf_crit=0.9, Rmax=180):
-    """mask ring by applying density threshold and radius cut"""
-    rho, mf = _get_cummass(dat)
-    rhoth = rho[np.searchsorted(-mf, -mf_crit)]
-    mask = (dat.density > rhoth)&(dat.R < Rmax)
-    return rhoth, mask
