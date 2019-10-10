@@ -8,11 +8,6 @@ import xarray as xr
 
 u = Units()
 
-def set_Pgrav(dat):
-    res = (dat.density*(dat.gz_sg+gz_ext(dat.R, dat.z, TIGRESS_unit=True))*
-            dat.domain['dx'][2]).where(dat.z>0).sum(dim='z')
-    dat['Pgrav'] = -res
-
 def set_Pdrive(s, dat):
     """Return momentum injection rate per area (pressure) from SNe."""
 
@@ -112,11 +107,15 @@ def add_derived_fields(dat, fields=[], in_place=False):
     if 'Pgrav' in fields:
         if not 'gz_sg' in dat.data_vars:
             add_derived_fields(dat, fields='gz_sg', in_place=True)
-        Pgrav = (dat.density*dat.gz_sg).where(dat.z>0).sum(dim='z')*dz
+        if not 'R' in dat.data_vars:
+            add_derived_fields(dat, fields='R', in_place=True)
+        Pgrav = (dat.density*
+                    (dat.gz_sg+gz_ext(dat.R, dat.z, TIGRESS_unit=True))
+                ).where(dat.z>0).sum(dim='z')*dz
         if in_place:
-            dat['Pgrav'] = Pgrav
+            dat['Pgrav'] = -Pgrav
         else:
-            tmp['Pgrav'] = Pgrav
+            tmp['Pgrav'] = -Pgrav
 
     if 'T' in fields:
         cf = coolftn()
