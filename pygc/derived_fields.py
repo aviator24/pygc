@@ -17,7 +17,7 @@ def set_Pdrive(s, dat):
     sn = sn[(sn.time > dat.ts)&(sn.time < dat.te)]
     sn['i'] = np.floor((sn.x1sn-le1)/dx1).astype('int32')
     sn['j'] = np.floor((sn.x2sn-le2)/dx2).astype('int32')
-    sn['pSNe'] = 2.8e5*sn['navg']**-0.17
+    sn['pSNe'] = 2.8e5*sn['navg']**-0.17/s.u.Msun
     sn = sn.groupby(['j','i']).sum()
     # make Nx*Ny grid and project pSNe onto it
     i = np.arange(s.domain['Nx'][0])
@@ -30,7 +30,7 @@ def set_Pdrive(s, dat):
 
     pSNe = xr.DataArray(pSNe, dims=['y','x'],
             coords=[dat.coords['y'], dat.coords['x']])
-    Pdrive = 0.25*pSNe/(dat.te-dat.ts)/dx1/dx2/(s.u.Msun/s.u.Myr)
+    Pdrive = 0.25*pSNe/(dat.te-dat.ts)/dx1/dx2
     dat['Pdrive'] = Pdrive
 
 def dpdt_sn(s, dat):

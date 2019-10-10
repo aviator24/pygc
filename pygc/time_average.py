@@ -106,8 +106,8 @@ if __name__ == '__main__':
         for i in range(1, COMM.size):
             dat += pickle.load(open(fname_global+".{}".format(i), "rb"))
         dat /= (args.end - args.start + 1)
-        dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time']*s.u.Myr,
-                          'te':s.load_vtk(num=args.end).domain['time']*s.u.Myr,
+        dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time'],
+                          'te':s.load_vtk(num=args.end).domain['time'],
                           'domain':s.domain})
         # dump global time-average
         with open(fname_global, "wb") as handle:
