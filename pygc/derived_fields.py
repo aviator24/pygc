@@ -3,7 +3,6 @@ from .util import wmean
 from .pot import gz_ext
 from pyathena.util.units import Units
 import numpy as np
-import pandas as pd
 import xarray as xr
 
 u = Units()
