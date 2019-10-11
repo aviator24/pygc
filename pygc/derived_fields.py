@@ -8,26 +8,6 @@ import xarray as xr
 
 u = Units()
 
-def dpdt_sn(s, dat):
-    """Return vertical momentum injection rate from SNe during ts-te.
-
-    Parameters
-    ----------
-    s   : LoadSim instance
-    dat : Time-averaged Dataset
-
-    Notes
-    ----
-    Pdrive = dpdt_sn / area
-    """
-
-    sn = s.read_sn()[['time','x1sn','x2sn','x3sn']]
-    sn = sn[(sn.time > dat.ts)&(sn.time < dat.te)]
-    NSNe = len(sn)
-    n0 = dat.density.interp(z=0).mean().values
-    pstar = 2.8e5*n0**-0.17 # Kim & Ostriker, Eqn. (34)
-    return 0.25*pstar*NSNe/(dat.te-dat.ts)
-
 def add_derived_fields(dat, fields=[], in_place=False):
     """Add derived fields in a Dataset
 
