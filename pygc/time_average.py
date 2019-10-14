@@ -65,6 +65,8 @@ if __name__ == '__main__':
                         help='increase output verbosity')
     parser.add_argument('--twophase', action='store_true',
                         help='include two-phase gas only')
+    parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
+                        help='base directory for simulation data')
     args = parser.parse_args()
 
     if args.twophase:
@@ -92,7 +94,7 @@ if __name__ == '__main__':
     print('[rank, mysteps]:', COMM.rank, mynums)
 
     # load simulation and perform local time-average
-    s = LoadSimTIGRESSGC("/data/shmoon/TIGRESS-GC/{}".format(args.model))
+    s = LoadSimTIGRESSGC("{}/{}".format(args.prefix,args.model))
     dat = dataset_tavg(s, mynums, twophase=args.twophase)
 
     # dump local sum
