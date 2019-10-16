@@ -10,7 +10,7 @@ import numpy as np
 from mpi4py import MPI
 from os import path as osp
 
-def draw_tigress_gc(COMM, model, nums, all=None, projection=None, history=None):
+def draw_tigress_gc(COMM, model, nums, all=None, projection=None, history=None, prefix=None):
     """
     =========================================================
     Description | MPI parallel function to generate figures
@@ -28,7 +28,7 @@ def draw_tigress_gc(COMM, model, nums, all=None, projection=None, history=None):
     import time
     import matplotlib.pyplot as plt
 
-    basename = "/data/shmoon/TIGRESS-GC/"
+    basename = prefix+"/"
     if all:
         fsize = (32,18)
     elif projection:
@@ -84,6 +84,8 @@ if __name__ == '__main__':
                         help='draw everything in a single panel')
     parser.add_argument('-p', '--projection', action='store_true',
                         help='draw density projection')
+    parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
+                        help='base directory for simulation data')
     args = parser.parse_args()
     if COMM.rank == 0:
         if args.verbosity is not None:
@@ -93,4 +95,4 @@ if __name__ == '__main__':
                 print("selected model: {}".format(args.model))
                 print("drawing from {} to {}".format(args.start, args.end))
     draw_tigress_gc(COMM, args.model, np.arange(args.start,args.end+1),
-                    all=args.all, projection=args.projection)
+                    all=args.all, projection=args.projection, prefix=args.prefix)
