@@ -70,11 +70,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     if args.twophase:
-        fname_local = "{}.tavg.2p.{}".format(args.model, COMM.rank)
-        fname_global = "{}.tavg.2p".format(args.model)
+        fname_local = "{}.tavg.{}.{}.2p.{}".format(args.model, args.starts, args.end, COMM.rank)
+        fname_global = "{}.tavg.{}.{}.2p".format(args.model, args.starts, args.end)
     else:
-        fname_local = "{}.tavg.{}".format(args.model, COMM.rank)
-        fname_global = "{}.tavg".format(args.model)
+        fname_local = "{}.tavg.{}.{}.{}".format(args.model, args.start, args.end, COMM.rank)
+        fname_global = "{}.tavg.{}.{}".format(args.model, args.start, args.end)
 
     if COMM.rank == 0:
         if args.verbosity is not None:
