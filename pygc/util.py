@@ -25,6 +25,11 @@ def wmean(arr, weights, dim):
         notnull = arr.notnull()
         return (arr * weights).sum(dim=dim) / weights.where(notnull).sum(dim=dim)
 
+def get_area(dm):
+    """return the area (pc^2) of the masked region"""
+    return ((dm.surf>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
+            *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
+
 def mask_ring(dat, mf_crit=0.9, Rmax=180):
     """mask ring by applying density threshold and radius cut"""
     rhoth = 0
@@ -43,6 +48,27 @@ def mask_ring(dat, mf_crit=0.9, Rmax=180):
 
     mask = rho_mask & R_mask
     return rhoth, mask
+
+def surfstar(s, dat, num, mask, area):
+    """return stellar surface density in the masked region"""
+    le1, le2 = s.domain['le'][0], s.domain['le'][1]
+    dx1, dx2 = s.domain['dx'][0], s.domain['dx'][1]
+    sp = s.load_starpar_vtk(num)
+    sp['i'] = np.floor((sp.x1-le1)/dx1).astype('int32')
+    sp['j'] = np.floor((sp.x2-le2)/dx2).astype('int32')
+    sp = sp.groupby(['j','i']).sum()
+    # make Nx*Ny grid and project pSNe onto it
+    i = np.arange(s.domain['Nx'][0])
+    j = np.arange(s.domain['Nx'][1])
+    idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
+    msp = pd.Series(np.nan*np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
+            index=idx)
+    msp[sp.index] = sp.mass
+    msp = msp.unstack().values
+    msp = xr.DataArray(msp, dims=['y','x'],
+            coords=[dat.coords['y'], dat.coords['x']])
+    msp = msp.where(mask).sum().values[()]
+    return msp/area
 
 def count_SNe(s, dat, ts, te, ncrit):
     """Count the number of SNe exploded between time ts and te.
