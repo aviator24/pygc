@@ -7,20 +7,24 @@ Author      | Sanghyuk Moon
 """
 import argparse
 import numpy as np
+from mpi4py import MPI
 from os import path as osp
 
-def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix=None):
+def draw_tigress_gc(COMM, model, nums, all=None, projection=None, history=None, prefix=None):
     """
     =========================================================
-    Description | serial function to generate figures
+    Description | MPI parallel function to generate figures
     Author      | Sanghyuk Moon
     =========================================================
+    COMM        | MPI communicator
     model       | selected model;
+                  default loc: /home/smoon/data/gc/your_model
     nums        | selected snapshots [start, end]
     =========================================================
     """
     from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
     from pyathena.tigress_gc.plt_tigress_gc import plt_proj_density, plt_all, plt_history
+    from pyathena.util.split_container import split_container
     import time
     import matplotlib.pyplot as plt
 
@@ -37,7 +41,15 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
 
     s = LoadSimTIGRESSGC(basename+model, verbose=False)
     
-    for num in nums:
+    if COMM.rank == 0:
+        nums = split_container(nums, COMM.size)
+    else:
+        nums = None
+    
+    mynums = COMM.scatter(nums, root=0)
+    print('[rank, mysteps]:', COMM.rank, mynums)
+
+    for num in mynums:
         dirname = osp.dirname(s.files['vtk'][0])
         fvtk = osp.join(dirname, '{0:s}.{1:04d}.vtk'.format(s.problem_id, num))
         if not osp.exists(fvtk):
@@ -49,16 +61,19 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
             plt_proj_density(s, num, fig)
         fig.clf()
     
-    print('')
-    print('################################################')
-    print('# Done with model', model)
-    print('# Execution time [sec]: {:.1f}'.format(time.time()-time0))
-    print('################################################')
-    print('')
+    COMM.barrier()
+    if COMM.rank == 0:
+        print('')
+        print('################################################')
+        print('# Done with model', model)
+        print('# Execution time [sec]: {:.1f}'.format(time.time()-time0))
+        print('################################################')
+        print('')
 
     plt.close(fig)
 
 if __name__ == '__main__':
+    COMM = MPI.COMM_WORLD
     parser = argparse.ArgumentParser()
     parser.add_argument('model', help='selected model')
     parser.add_argument('start', type=int, help='start index')
@@ -72,11 +87,12 @@ if __name__ == '__main__':
     parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
                         help='base directory for simulation data')
     args = parser.parse_args()
-    if args.verbosity is not None:
-        if args.verbosity >= 2:
-            print("Running '{}'".format(__file__))
-        if args.verbosity >= 1:
-            print("selected model: {}".format(args.model))
-            print("drawing from {} to {}".format(args.start, args.end))
-    draw_tigress_gc(args.model, np.arange(args.start,args.end+1),
+    if COMM.rank == 0:
+        if args.verbosity is not None:
+            if args.verbosity >= 2:
+                print("Running '{}'".format(__file__))
+            if args.verbosity >= 1:
+                print("selected model: {}".format(args.model))
+                print("drawing from {} to {}".format(args.start, args.end))
+    draw_tigress_gc(COMM, args.model, np.arange(args.start,args.end+1),
                     all=args.all, projection=args.projection, prefix=args.prefix)
