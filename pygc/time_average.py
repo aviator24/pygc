@@ -49,13 +49,8 @@ def dataset_tavg(s, nums, twophase=False):
 
 if __name__ == '__main__':
     import argparse
-    from mpi4py import MPI
     from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
-    from pyathena.util.split_container import split_container
     import pickle
-
-
-    COMM = MPI.COMM_WORLD
 
     parser = argparse.ArgumentParser()
     parser.add_argument('model', help='selected model')
@@ -67,16 +62,33 @@ if __name__ == '__main__':
                         help='include two-phase gas only')
     parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
                         help='base directory for simulation data')
+    parser.add_argument('-mpi', action='store_true', help='enable mpi')
     args = parser.parse_args()
 
+    if args.mpi:
+        from mpi4py import MPI
+        from pyathena.util.split_container import split_container
+        COMM = MPI.COMM_WORLD
+
     if args.twophase:
-        fname_local = "{}.tavg.{}.{}.2p.{}".format(args.model, args.starts, args.end, COMM.rank)
+        if args.mpi:
+            fname_local = "{}.tavg.{}.{}.2p.{}".format(args.model, args.starts, args.end, COMM.rank)
         fname_global = "{}.tavg.{}.{}.2p".format(args.model, args.starts, args.end)
     else:
-        fname_local = "{}.tavg.{}.{}.{}".format(args.model, args.start, args.end, COMM.rank)
+        if args.mpi:
+            fname_local = "{}.tavg.{}.{}.{}".format(args.model, args.start, args.end, COMM.rank)
         fname_global = "{}.tavg.{}.{}".format(args.model, args.start, args.end)
 
-    if COMM.rank == 0:
+    if args.mpi:
+        if COMM.rank==0:
+            if args.verbosity is not None:
+                if args.verbosity >= 2:
+                    print("Running '{}'".format(__file__))
+                if args.verbosity >= 1:
+                    print("selected model: {}".format(args.model))
+                    print("generating time average between snapshot {} to {}"
+                            .format(args.start, args.end))
+    else:
         if args.verbosity is not None:
             if args.verbosity >= 2:
                 print("Running '{}'".format(__file__))
@@ -86,33 +98,44 @@ if __name__ == '__main__':
                         .format(args.start, args.end))
 
     nums = np.arange(args.start,args.end+1)
-    if COMM.rank == 0:
-        nums = split_container(nums, COMM.size)
+    if args.mpi:
+        if COMM.rank == 0:
+            nums = split_container(nums, COMM.size)
+        else:
+            nums = None
+        mynums = COMM.scatter(nums, root=0)
+        print('[rank, mysteps]:', COMM.rank, mynums)
     else:
-        nums = None
-    mynums = COMM.scatter(nums, root=0)
-    print('[rank, mysteps]:', COMM.rank, mynums)
+        mynums=nums
 
     # load simulation and perform local time-average
     s = LoadSimTIGRESSGC("{}/{}".format(args.prefix,args.model))
     dat = dataset_tavg(s, mynums, twophase=args.twophase)
 
-    # dump local sum
-    with open(fname_local, "wb") as handle:
-        pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
-
-    COMM.Barrier()
-
-    # combine local time-averages into global time-average dump
-    if COMM.rank == 0:
-        for i in range(1, COMM.size):
-            dat += pickle.load(open(fname_global+".{}".format(i), "rb"))
+    if args.mpi:
+        # dump local sum
+        with open(fname_local, "wb") as handle:
+            pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    
+        COMM.Barrier()
+    
+        # combine local time-averages into global time-average dump
+        if COMM.rank == 0:
+            for i in range(1, COMM.size):
+                dat += pickle.load(open(fname_global+".{}".format(i), "rb"))
+            dat /= (args.end - args.start + 1)
+            dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time'],
+                              'te':s.load_vtk(num=args.end).domain['time'],
+                              'domain':s.domain})
+            # dump global time-average
+            with open(fname_global, "wb") as handle:
+                pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        COMM.Barrier()
+        os.remove(fname_local)
+    else:
         dat /= (args.end - args.start + 1)
         dat.attrs.update({'ts':s.load_vtk(num=args.start).domain['time'],
                           'te':s.load_vtk(num=args.end).domain['time'],
                           'domain':s.domain})
-        # dump global time-average
         with open(fname_global, "wb") as handle:
             pickle.dump(dat, handle, protocol=pickle.HIGHEST_PROTOCOL)
-    COMM.Barrier()
-    os.remove(fname_local)
