@@ -92,7 +92,7 @@ def count_SNe(s, dat, ts, te, ncrit):
     i = np.arange(s.domain['Nx'][0])
     j = np.arange(s.domain['Nx'][1])
     idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
-    NSNe = pd.Series(np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
+    NSNe = pd.Series(np.nan*np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
             index=idx)
     NSNe[sn.index] = sn
     NSNe = NSNe.unstack().values
