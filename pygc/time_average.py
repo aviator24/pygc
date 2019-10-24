@@ -62,7 +62,7 @@ if __name__ == '__main__':
                         help='include two-phase gas only')
     parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
                         help='base directory for simulation data')
-    parser.add_argument('-mpi', action='store_true', help='enable mpi')
+    parser.add_argument('--mpi', action='store_true', help='enable mpi')
     args = parser.parse_args()
 
     if args.mpi:
@@ -72,8 +72,8 @@ if __name__ == '__main__':
 
     if args.twophase:
         if args.mpi:
-            fname_local = "{}.tavg.{}.{}.2p.{}".format(args.model, args.starts, args.end, COMM.rank)
-        fname_global = "{}.tavg.{}.{}.2p".format(args.model, args.starts, args.end)
+            fname_local = "{}.tavg.{}.{}.2p.{}".format(args.model, args.start, args.end, COMM.rank)
+        fname_global = "{}.tavg.{}.{}.2p".format(args.model, args.start, args.end)
     else:
         if args.mpi:
             fname_local = "{}.tavg.{}.{}.{}".format(args.model, args.start, args.end, COMM.rank)
