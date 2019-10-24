@@ -44,7 +44,7 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
             continue
         print(num, end=' ')
         if all:
-            plt_all(s, num, fig)
+            plt_all(s, num, fig, with_starpar=True)
         elif projection:
             plt_proj_density(s, num, fig)
         fig.clf()
