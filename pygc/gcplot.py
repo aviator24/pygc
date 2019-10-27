@@ -9,13 +9,13 @@ import argparse
 import numpy as np
 from os import path as osp
 
-def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix=None):
+def draw_tigress_gc(indir, nums, all=None, projection=None, history=None):
     """
     =========================================================
     Description | serial function to generate figures
     Author      | Sanghyuk Moon
     =========================================================
-    model       | selected model;
+    indir       | input simulation directory (indir/vtk; indir/starpar; etc.);
     nums        | selected snapshots [start, end]
     =========================================================
     """
@@ -24,7 +24,6 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
     import time
     import matplotlib.pyplot as plt
 
-    basename = prefix+"/"
     if all:
         fsize = (32,18)
     elif projection:
@@ -35,7 +34,7 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
     # Measure execution time
     time0 = time.time()
 
-    s = LoadSimTIGRESSGC(basename+model, verbose=False)
+    s = LoadSimTIGRESSGC(indir, verbose=False)
     
     for num in nums:
         dirname = osp.dirname(s.files['vtk'][0])
@@ -51,7 +50,6 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
     
     print('')
     print('################################################')
-    print('# Done with model', model)
     print('# Execution time [sec]: {:.1f}'.format(time.time()-time0))
     print('################################################')
     print('')
@@ -60,23 +58,9 @@ def draw_tigress_gc(model, nums, all=None, projection=None, history=None, prefix
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('model', help='selected model')
+    parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
     parser.add_argument('end', type=int, help='end index')
-    parser.add_argument('-v', '--verbosity', action='count',
-                        help='increase output verbosity')
-    parser.add_argument('-a', '--all', action='store_true',
-                        help='draw everything in a single panel')
-    parser.add_argument('-p', '--projection', action='store_true',
-                        help='draw density projection')
-    parser.add_argument('--prefix', default="/data/shmoon/TIGRESS-GC",
-                        help='base directory for simulation data')
     args = parser.parse_args()
-    if args.verbosity is not None:
-        if args.verbosity >= 2:
-            print("Running '{}'".format(__file__))
-        if args.verbosity >= 1:
-            print("selected model: {}".format(args.model))
-            print("drawing from {} to {}".format(args.start, args.end))
-    draw_tigress_gc(args.model, np.arange(args.start,args.end+1),
-                    all=args.all, projection=args.projection, prefix=args.prefix)
+    draw_tigress_gc(args.indir, np.arange(args.start,args.end+1),
+                    all=True, projection=False)
