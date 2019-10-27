@@ -70,34 +70,38 @@ def surfstar(s, dat, num, mask, area):
     msp = msp.where(mask).sum().values[()]
     return msp/area
 
-def count_SNe(s, dat, ts, te, ncrit):
+def count_SNe(s, ts, te, ncrit):
     """Count the number of SNe exploded between time ts and te.
 
     Parameters
     ----------
     s     : LoadSim instance
-    dat   : xr DataArray
     ts    : start time in code unit
     te    : end time in code unit
     ncrit : SNe exploded at hydrogen number density below ncrit is not counted.
     """
     le1, le2 = s.domain['le'][0], s.domain['le'][1]
+    re1, re2 = s.domain['le'][0], s.domain['le'][1]
     dx1, dx2 = s.domain['dx'][0], s.domain['dx'][1]
+    Nx1, Nx2 = s.domain['Nx'][0], s.domain['Nx'][1]
     sn = s.read_sn()[['time','x1sn','x2sn','navg']]
     sn = sn[(sn.time > ts)&(sn.time < te)&(sn.navg > ncrit)]
     sn['i'] = np.floor((sn.x1sn-le1)/dx1).astype('int32')
     sn['j'] = np.floor((sn.x2sn-le2)/dx2).astype('int32')
     sn = sn.groupby(['j','i']).size()
     # make Nx*Ny grid and project pSNe onto it
-    i = np.arange(s.domain['Nx'][0])
-    j = np.arange(s.domain['Nx'][1])
+    i = np.arange(Nx1)
+    j = np.arange(Nx2)
+    x = np.linspace(le1+0.5*dx1, re1-0.5*dx1, Nx1)
+    y = np.linspace(le2+0.5*dx2, re2-0.5*dx2, Nx2)
     idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
-    NSNe = pd.Series(np.nan*np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
+    NSNe = pd.Series(np.nan*np.zeros(Nx1*Nx2),
             index=idx)
     NSNe[sn.index] = sn
     NSNe = NSNe.unstack().values
-    dat['NSNe'] = xr.DataArray(NSNe, dims=['y','x'],
+    NSNe = xr.DataArray(NSNe, dims=['y','x'],
             coords=[dat.coords['y'], dat.coords['x']])
+    return NSNe
 
 def _Mabove(dat, rho_th):
     """Return total gas mass above threshold density rho_th."""
