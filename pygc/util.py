@@ -27,7 +27,7 @@ def wmean(arr, weights, dim):
         return (arr * weights).sum(dim=dim) / weights.where(notnull).sum(dim=dim)
 
 def count_SNe(s, ts, te, ncrit):
-    """Count the number of SNe exploded between time ts and te.
+    """Count the number of SNe and map the result onto a grid
 
     Parameters
     ----------
@@ -35,26 +35,31 @@ def count_SNe(s, ts, te, ncrit):
     ts    : start time in code unit
     te    : end time in code unit
     ncrit : SNe exploded at hydrogen number density below ncrit is not counted.
+
+    Return
+    ------
+    NSNe : xr.DataArray of the number of supernovae
     """
+    # domain information
     le1, le2 = s.domain['le'][0], s.domain['le'][1]
-    re1, re2 = s.domain['le'][0], s.domain['le'][1]
+    re1, re2 = s.domain['re'][0], s.domain['re'][1]
     dx1, dx2 = s.domain['dx'][0], s.domain['dx'][1]
     Nx1, Nx2 = s.domain['Nx'][0], s.domain['Nx'][1]
-    sn = s.read_sn()[['time','x1sn','x2sn','navg']]
-    sn = sn[(sn.time > ts)&(sn.time < te)&(sn.navg > ncrit)]
-    sn['i'] = np.floor((sn.x1sn-le1)/dx1).astype('int32')
-    sn['j'] = np.floor((sn.x2sn-le2)/dx2).astype('int32')
-    sn = sn.groupby(['j','i']).size()
-    # make Nx*Ny grid and project pSNe onto it
     i = np.arange(Nx1)
     j = np.arange(Nx2)
     x = np.linspace(le1+0.5*dx1, re1-0.5*dx1, Nx1)
     y = np.linspace(le2+0.5*dx2, re2-0.5*dx2, Nx2)
+    # load supernova dump
+    sn = s.read_sn()[['time','x1sn','x2sn','navg']]
+    # filter SNs satisfying (ts < t < te) and (n > n_crit)
+    sn = sn[(sn.time > ts)&(sn.time < te)&(sn.navg > ncrit)]
+    # remap the number of SNs onto a grid
+    sn['i'] = np.floor((sn.x1sn-le1)/dx1).astype('int32')
+    sn['j'] = np.floor((sn.x2sn-le2)/dx2).astype('int32')
+    sn = sn.groupby(['j','i']).size()
     idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
-    NSNe = pd.Series(np.nan*np.zeros(Nx1*Nx2),
-            index=idx)
+    NSNe = pd.Series(np.nan*np.zeros(Nx1*Nx2), index=idx)
     NSNe[sn.index] = sn
     NSNe = NSNe.unstack().values
-    NSNe = xr.DataArray(NSNe, dims=['y','x'],
-            coords=[y, x])
+    NSNe = xr.DataArray(NSNe, dims=['y','x'], coords=[y, x])
     return NSNe
