@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 import os
+from scipy.optimize import bisect
 
 Twarm=2.e4
 
@@ -43,24 +44,25 @@ def do_average(s, num, twophase=True, pgravmask=True):
     Pgrav = (dat.Pgrav*dx*dy).sum().values[()]/area
     return [t,Pth,Pturb,Pgrav,area]
 
-def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=180):
+def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     """mask ring by applying density threshold and radius cut"""
-    rhoth = 0
-    rho_mask = True
+    mask = True
     R_mask = True
 
     if Rmax:
+        if not 'R' in dat.data_vars:
+            add_derived_fields(dat, fields='R', in_place=True)
         R_mask = dat.R < Rmax
 
     if mf_crit:
         if Rmax:
             dat = dat.where(R_mask, other=0)
-        rho, mf = _get_cummass(dat)
-        rhoth = rho[np.searchsorted(-mf, -mf_crit)]
-        rho_mask = dat.density > rhoth
+        Mtot = _Mabove(dat, 0)
+        surf_th = bisect(lambda x: mf_crit*Mtot-_Mabove(dat, x), 1e1, 1e4)
+        mask = dat.surf > surf_th
 
-    mask = rho_mask & R_mask
-    return rhoth, mask
+    mask = mask & R_mask
+    return surf_th, mask
 
 def surfstar(s, dat, num, mask, area):
     """return stellar surface density in the masked region"""
@@ -88,22 +90,11 @@ def _get_area(dm):
     return ((dm.Pturb>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
             *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
 
-def _Mabove(dat, rho_th):
-    """Return total gas mass above threshold density rho_th."""
-    rho = dat.density
-    M = rho.where(rho>rho_th).sum()*dat.domain['dx'].prod()
+def _Mabove(dat, surf_th):
+    """Return total gas mass above threshold density surf_th."""
+    surf = dat.surf
+    M = surf.where(surf>surf_th).sum()*dat.domain['dx'][0]*dat.domain['dx'][1]
     return M.values[()]
-
-def _get_cummass(dat):
-    """Return n_th and M(n>n_th)"""
-    nbins = 50
-    thresholds = np.linspace(0, 100, nbins)
-    cummass = np.zeros(nbins)
-    Mtot = _Mabove(dat, 0)
-    for i, rho_th in enumerate(thresholds):
-        cummass[i] = _Mabove(dat, rho_th) / Mtot
-    return thresholds, cummass
-
 
 if __name__ == '__main__':
     import argparse
