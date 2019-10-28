@@ -8,6 +8,7 @@ import os
 Twarm=2.e4
 
 def do_average(s, num, twophase=True, pgravmask=True):
+    """Load num-th snapshot, define ring region, and do midplane average"""
     ds = s.load_vtk(num)
     dx = ds.domain['dx'][0]
     dy = ds.domain['dx'][1]
@@ -23,6 +24,9 @@ def do_average(s, num, twophase=True, pgravmask=True):
     else:
         add_derived_fields(dat, ['gz_sg'], in_place=True)
     dat = dat.drop(['gravitational_potential'])
+    # Now, dat contains [density, velocity3, pressure, gz_sg]
+
+    # calculate total weight
     add_derived_fields(dat, ['Pgrav'], in_place=True)
     dat = dat.drop(['gz_sg'])
     dat['density'] = dat.density.sel(z=0, method='nearest')
