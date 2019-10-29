@@ -5,11 +5,11 @@ Description | Read snapshot and return Pth, Pturb, Pgrav
 Author      | Sanghyuk Moon
 ========================================================
 """
+from pygc.ring import do_average
+from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 import argparse
 import numpy as np
 import os
-from .ring import do_average
-from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 
 if __name__ == '__main__':
 
