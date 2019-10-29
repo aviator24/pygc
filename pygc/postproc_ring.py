@@ -5,8 +5,8 @@ Description | Read snapshot, delineate ring, compute various quantities
 Author      | Sanghyuk Moon
 =======================================================================
 """
-from pygc.util import add_derived_fields
-from pygc.ring import mask_ring_by_mass, grid_msp, _get_area
+from pygc.util import add_derived_fields, grid_msp
+from pygc.ring import mask_ring_by_mass, _get_area
 from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 import argparse
 import numpy as np
