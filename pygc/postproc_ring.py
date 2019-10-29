@@ -72,6 +72,7 @@ if __name__ == '__main__':
         Pturb = dat.Pturb.where(mask).mean().values[()]
         agebin = 1/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
-        sfrsurf = msp.sum().values[()]/_get_area(dat.where(mask))/agebin
+        sfrsurf = msp.where(mask).sum().values[()]/\
+                _get_area(dat.where(mask))/agebin
         np.savetxt("{}/gc.{:04d}.txt".format(outdir,num),
                 [surf, Pturb, sfrsurf])
