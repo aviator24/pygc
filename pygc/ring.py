@@ -87,8 +87,15 @@ def surfstar(s, dat, num, mask, area):
 
 def _get_area(dm):
     """return the area (pc^2) of the masked region"""
-    return ((dm.Pturb>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
+    if 'Pturb' in dm.data_vars:
+        area = ((dm.Pturb>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
             *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
+    elif 'surf' in dm.data_vars:
+        area = ((dm.surf>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
+            *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
+    else:
+        raise ValueError("input data should contain Pturb or surf field")
+    return area
 
 def _Mabove(dat, surf_th):
     """Return total gas mass above threshold density surf_th."""
