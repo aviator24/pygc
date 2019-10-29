@@ -1,10 +1,17 @@
+#!/usr/bin/env python
+"""
+========================================================
+Description | Read snapshot and return Pth, Pturb, Pgrav
+Author      | Sanghyuk Moon
+========================================================
+"""
+import argparse
 import numpy as np
 import os
 from pygc.ring import do_average
+from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 
 if __name__ == '__main__':
-    import argparse
-    from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 
     parser = argparse.ArgumentParser()
     parser.add_argument('indir', help='input simulation directory')
