@@ -64,7 +64,7 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     mask = mask & R_mask
     return surf_th, mask
 
-def grid_msp(s, num, ageminMyr, agemaxMyr):
+def grid_msp(s, num, agemin, agemax):
     """read starpar_vtk and remap starpar mass onto a grid"""
     # domain information
     le1, le2 = s.domain['le'][0], s.domain['le'][1]
@@ -78,8 +78,8 @@ def grid_msp(s, num, ageminMyr, agemaxMyr):
     # load starpar vtk
     sp = s.load_starpar_vtk(num)[['x1','x2','mass','mage']]
     # apply age cut
-    sp = sp[(sp['mage'] < agemaxMyr/s.u.Myr)&
-            (sp['mage'] > ageminMyr/s.u.Myr)]
+    sp = sp[(sp['mage'] < agemax)&
+            (sp['mage'] > agemin)]
     # remap the starpar onto a grid
     sp['i'] = np.floor((sp.x1-le1)/dx1).astype('int32')
     sp['j'] = np.floor((sp.x2-le2)/dx2).astype('int32')
