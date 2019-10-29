@@ -5,12 +5,12 @@ Author      | Sanghyuk Moon
 ================================================
 """
 
+from pyathena.classic.cooling import coolftn
 import numpy as np
 from astropy import constants as ac
 from astropy import units as au
 from scipy.optimize import bisect
 from scipy.interpolate import interp1d
-from pyathena.classic.cooling import coolftn
 
 muH = 1.4271
 

@@ -9,8 +9,8 @@ import argparse
 import numpy as np
 import os
 from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
-from pygc.derived_fields import add_derived_fields
-from pygc.ring import mask_ring_by_mass, grid_msp, _get_area
+from .util import add_derived_fields
+from .ring import mask_ring_by_mass, grid_msp, _get_area
 
 Twarm = 2.e4
 

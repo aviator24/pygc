@@ -1,5 +1,4 @@
-from pygc.derived_fields import add_derived_fields
-from pygc.util import count_SNe
+from .util import add_derived_fields, count_SNe
 import numpy as np
 import pandas as pd
 import xarray as xr

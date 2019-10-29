@@ -8,7 +8,7 @@ Author      | Sanghyuk Moon
 import argparse
 import numpy as np
 import os
-from pygc.ring import do_average
+from .ring import do_average
 from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 
 if __name__ == '__main__':
@@ -49,7 +49,7 @@ if __name__ == '__main__':
         mynums=nums
     print('[rank, mysteps]:', myrank, mynums)
 
-    # load simulation and perform local time-average
+    # load simulation
     s = LoadSimTIGRESSGC(args.indir)
 
     for num in mynums:
