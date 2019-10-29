@@ -59,15 +59,19 @@ if __name__ == '__main__':
 
     for num in mynums:
         ds = s.load_vtk(num)
-        dat = ds.get_field(['density','pressure'], as_xarray=True)
+        dat = ds.get_field(['density','velocity','pressure'],
+                as_xarray=True)
+        dat = dat.drop(['velocity1','velocity2'])
         add_derived_fields(dat, 'T', in_place=True)
         dat = dat.where(dat.T < Twarm)
-        add_derived_fields(dat, 'surf', in_place=True)
+        add_derived_fields(dat, ['surf','Pturb'], in_place=True)
+        dat['Pturb'] = dat.Pturb.sel(z=0, method='nearest')
         surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
                 Rmax=args.Rmax)
         surf = dat.surf.where(mask).mean().values[()]
+        Pturb = dat.Pturb.where(mask).mean().values[()]
         agebin = 1/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
         sfrsurf = msp.sum().values[()]/_get_area(dat.where(mask))/agebin
         np.savetxt("{}/gc.{:04d}.txt".format(outdir,num),
-                [surf, sfrsurf])
+                [surf, Pturb, sfrsurf])
