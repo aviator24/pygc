@@ -22,8 +22,6 @@ if __name__ == '__main__':
     parser.add_argument('end', type=int, help='end index')
     parser.add_argument('mf_crit', type=float, help='mass cut')
     parser.add_argument('Rmax', type=float, help='radius cut')
-    parser.add_argument('-v', '--verbosity', action='count',
-                        help='increase output verbosity')
     parser.add_argument('--outdir', default=None, help='output directory')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
     args = parser.parse_args()
@@ -50,9 +48,9 @@ if __name__ == '__main__':
         else:
             nums = None
         mynums = COMM.scatter(nums, root=0)
-        print('[rank, mysteps]:', myrank, mynums)
     else:
         mynums=nums
+    print('[rank, mysteps]:', myrank, mynums)
 
     # load simulation
     s = LoadSimTIGRESSGC(args.indir)

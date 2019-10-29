@@ -17,8 +17,6 @@ if __name__ == '__main__':
     parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
     parser.add_argument('end', type=int, help='end index')
-    parser.add_argument('-v', '--verbosity', action='count',
-                        help='increase output verbosity')
     parser.add_argument('--outdir', default=None, help='output directory')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
     parser.add_argument('--twophase', action='store_true')
@@ -34,7 +32,7 @@ if __name__ == '__main__':
         myrank = 0
 
     if args.outdir==None:
-        outdir=args.indir+'/postproc_equilibrium'
+        outdir=args.indir+'/postproc_equil'
     else:
         outdir=args.outdir
     if (~os.path.exists(outdir))&(myrank==0):
@@ -47,9 +45,9 @@ if __name__ == '__main__':
         else:
             nums = None
         mynums = COMM.scatter(nums, root=0)
-        print('[rank, mysteps]:', myrank, mynums)
     else:
         mynums=nums
+    print('[rank, mysteps]:', myrank, mynums)
 
     # load simulation and perform local time-average
     s = LoadSimTIGRESSGC(args.indir)
