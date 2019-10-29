@@ -91,27 +91,6 @@ def grid_msp(s, num, ageminMyr, agemaxMyr):
     msp = xr.DataArray(msp, dims=['y','x'], coords=[y,x])
     return msp
 
-def surfstar(s, dat, num, mask, area):
-    """return stellar surface density in the masked region"""
-    le1, le2 = s.domain['le'][0], s.domain['le'][1]
-    dx1, dx2 = s.domain['dx'][0], s.domain['dx'][1]
-    sp = s.load_starpar_vtk(num)
-    sp['i'] = np.floor((sp.x1-le1)/dx1).astype('int32')
-    sp['j'] = np.floor((sp.x2-le2)/dx2).astype('int32')
-    sp = sp.groupby(['j','i']).sum()
-    # make Nx*Ny grid and project pSNe onto it
-    i = np.arange(s.domain['Nx'][0])
-    j = np.arange(s.domain['Nx'][1])
-    idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
-    msp = pd.Series(np.nan*np.zeros(s.domain['Nx'][0]*s.domain['Nx'][1]),
-            index=idx)
-    msp[sp.index] = sp.mass
-    msp = msp.unstack().values
-    msp = xr.DataArray(msp, dims=['y','x'],
-            coords=[dat.coords['y'], dat.coords['x']])
-    msp = msp.where(mask).sum().values[()]
-    return msp/area
-
 def _get_area(dm):
     """return the area (pc^2) of the masked region"""
     if 'Pturb' in dm.data_vars:
