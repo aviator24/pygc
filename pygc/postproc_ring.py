@@ -63,16 +63,20 @@ if __name__ == '__main__':
                 as_xarray=True)
         dat = dat.drop(['velocity1','velocity2'])
         add_derived_fields(dat, 'T', in_place=True)
+        # select two-phase gas
         dat = dat.where(dat.T < Twarm)
         add_derived_fields(dat, ['surf','Pturb'], in_place=True)
         dat['Pturb'] = dat.Pturb.sel(z=0, method='nearest')
+        dat['density'] = dat.density.sel(z=0, method='nearest')
+        # delineate the ring by applying a mass cut
         surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
                 Rmax=args.Rmax)
         surf = dat.surf.where(mask).mean().values[()]
         Pturb = dat.Pturb.where(mask).mean().values[()]
+        n0 = dat.density.where(mask).mean().values[()]
         agebin = 1/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
         sfrsurf = msp.where(mask).sum().values[()]/\
                 _get_area(dat.where(mask))/agebin
         np.savetxt("{}/gc.{:04d}.txt".format(outdir,num),
-                [surf, Pturb, sfrsurf])
+                [surf, Pturb, sfrsurf, n0])
