@@ -38,6 +38,12 @@ if __name__ == '__main__':
     if (~os.path.exists(outdir))&(myrank==0):
         os.mkdir(outdir)
 
+    fname = 'gc'
+    if args.twophase:
+        fname = fname+'.2p'
+    if args.pgravmask:
+        fname = fname+'.msk'
+
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
         if myrank == 0:
@@ -54,4 +60,4 @@ if __name__ == '__main__':
 
     for num in mynums:
         ds = do_average(s, num, twophase=args.twophase, pgravmask=args.pgravmask)
-        np.savetxt("{}/ringavg.{:04d}.txt".format(outdir,num), ds)
+        np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num), ds)
