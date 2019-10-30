@@ -41,12 +41,12 @@ if __name__ == '__main__':
 
     if args.twophase:
         if args.mpi:
-            fname_local = "gc.{:04d}.{:04d}.2p.pkl.{}".format(args.start, args.end, COMM.rank)
-        fname_global = "gc.{:04d}.{:04d}.2p.pkl".format(args.start, args.end)
+            fname_local = "{}/gc.{:04d}.{:04d}.2p.pkl.{}".format(outdir, args.start, args.end, COMM.rank)
+        fname_global = "{}/gc.{:04d}.{:04d}.2p.pkl".format(outdir, args.start, args.end)
     else:
         if args.mpi:
-            fname_local = "gc.{:04d}.{:04d}.pkl.{}".format(args.start, args.end, COMM.rank)
-        fname_global = "gc.{:04d}.{:04d}.pkl".format(args.start, args.end)
+            fname_local = "{}/gc.{:04d}.{:04d}.pkl.{}".format(outdir, args.start, args.end, COMM.rank)
+        fname_global = "{}/gc.{:04d}.{:04d}.pkl".format(outdir, args.start, args.end)
 
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
