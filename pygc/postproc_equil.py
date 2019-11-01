@@ -12,7 +12,6 @@ import numpy as np
 import os
 
 if __name__ == '__main__':
-
     parser = argparse.ArgumentParser()
     parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
