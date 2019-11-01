@@ -11,7 +11,6 @@ import os
 import subprocess
 
 if __name__ == '__main__':
-    COMM = MPI.COMM_WORLD
     parser = argparse.ArgumentParser()
     parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
