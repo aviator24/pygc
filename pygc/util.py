@@ -32,7 +32,7 @@ def wmean(arr, weights, dim):
         notnull = arr.notnull()
         return (arr * weights).sum(dim=dim) / weights.where(notnull).sum(dim=dim)
 
-def add_derived_fields(dat, fields=[], in_place=False):
+def add_derived_fields(dat, fields=[], in_place=True):
     """Add derived fields in a Dataset
 
     Parameters
