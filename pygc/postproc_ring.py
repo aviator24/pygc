@@ -56,6 +56,7 @@ if __name__ == '__main__':
 
     for num in mynums:
         ds = s.load_vtk(num)
+        t = ds.domain['time']
         dat = ds.get_field(['density','velocity','pressure'],
                 as_xarray=True)
         dat = dat.drop(['velocity1','velocity2'])
@@ -73,7 +74,7 @@ if __name__ == '__main__':
         n0 = dat.density.where(mask).mean().values[()]
         agebin = 1/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
-        sfrsurf = msp.where(mask).sum().values[()]/\
-                _get_area(dat.where(mask))/agebin
+        area = _get_area(dat.where(mask))
+        sfrsurf = msp.where(mask).sum().values[()]/area/agebin
         np.savetxt("{}/gc.{:04d}.txt".format(outdir,num),
-                [surf, Pturb, sfrsurf, n0])
+                [t, surf, Pturb, sfrsurf, n0, area])
