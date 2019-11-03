@@ -23,11 +23,13 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
 
 def _get_area(dm):
     """return the area (pc^2) of the masked region"""
-    if 'Pturb' in dm.data_vars:
-        area = ((dm.Pturb>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
-            *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
-    elif 'surf' in dm.data_vars:
+    if 'surf' in dm.data_vars:
         area = ((dm.surf>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
+            *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
+    elif 'Pturb' in dm.data_vars:
+        if len(dm.Pturb.dims)==3:
+            raise ValueError("Pturb should be given as midplane value")
+        area = ((dm.Pturb>0).sum() / (dm.domain['Nx'][0]*dm.domain['Nx'][1])
             *(dm.domain['Lx'][0]*dm.domain['Lx'][1])).values[()]
     else:
         raise ValueError("input data should contain Pturb or surf field")

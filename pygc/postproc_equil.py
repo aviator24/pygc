@@ -12,7 +12,6 @@ from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 from pyathena.io.read_vtk import read_vtk
 import argparse
 import numpy as np
-from scipy.optimize import bisect
 import os
 
 Twarm=2.e4
