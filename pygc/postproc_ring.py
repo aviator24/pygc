@@ -25,6 +25,7 @@ if __name__ == '__main__':
     parser.add_argument('Rmax', type=float, help='radius cut')
     parser.add_argument('--outdir', default=None, help='output directory')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
+    parser.add_argument('--twophase', action='store_true')
     args = parser.parse_args()
 
     if args.mpi:
@@ -41,6 +42,10 @@ if __name__ == '__main__':
         outdir=args.outdir
     if (~os.path.exists(outdir))&(myrank==0):
         os.mkdir(outdir)
+
+    fname = 'gc'
+    if args.twophase:
+        fname = fname+'.2p'
 
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
@@ -64,12 +69,16 @@ if __name__ == '__main__':
         dat = ds.get_field(['density','velocity','pressure',
             'gravitational_potential'], as_xarray=True)
         dat = dat.drop(['velocity1','velocity2'])
-        add_derived_fields(dat, ['T','gz_sg'])
-        gz_sg = dat.gz_sg
-        # select two-phase gas
-        dat = dat.where(dat.T < Twarm)
-        dat = dat.drop('T')
-        dat['gz_sg'] = gz_sg
+
+        if args.twophase:
+            add_derived_fields(dat, ['T','gz_sg'])
+            gz_sg = dat.gz_sg
+            # select two-phase gas
+            dat = dat.where(dat.T < Twarm)
+            dat = dat.drop('T')
+            dat['gz_sg'] = gz_sg
+        else:
+            add_derived_fields(dat, ['gz_sg'])
         dat = dat.drop('gravitational_potential')
 
         # seperate individual contributions to the gravitational field.
@@ -121,6 +130,6 @@ if __name__ == '__main__':
         Pturb = dat.Pturb.where(mask).mean().values[()]
         Pth = dat.pressure.where(mask).mean().values[()]
 
-        np.savetxt("{}/gc.{:04d}.txt".format(outdir,num),
+        np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num),
                 [t, surf, surfstar, surfsfr, n0, H, Hs, sz,
                     Pgrav_gas, Pgrav_starpar, Pgrav_ext, Pturb, Pth, area])
