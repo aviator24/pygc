@@ -48,8 +48,6 @@ if __name__ == '__main__':
         fname = fname+'.2p'
     if args.mf_crit:
         fname = fname+'.mcut'
-    if args.Rmax:
-        fname = fname+'.Rcut'
 
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
@@ -111,9 +109,12 @@ if __name__ == '__main__':
         dat['Pturb'] = dat.Pturb.sel(z=0, method='nearest')
         dat['density'] = dat.density.sel(z=0, method='nearest')
 
-        # delineate the ring by applying a mass cut
-        surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
-                Rmax=args.Rmax)
+        if args.mf_crit:
+            # delineate the ring by applying a mass cut
+            surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
+                    Rmax=args.Rmax)
+        else:
+            mask = True
         area = _get_area(dat.where(mask))
 
         surf = dat.surf.where(mask).mean().values[()]
