@@ -21,11 +21,11 @@ if __name__ == '__main__':
     parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
     parser.add_argument('end', type=int, help='end index')
-    parser.add_argument('mf_crit', type=float, help='mass cut')
-    parser.add_argument('Rmax', type=float, help='radius cut')
     parser.add_argument('--outdir', default=None, help='output directory')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
     parser.add_argument('--twophase', action='store_true')
+    parser.add_argument('--mf_crit', type=float, help='mass cut')
+    parser.add_argument('--Rmax', type=float, help='radius cut')
     args = parser.parse_args()
 
     if args.mpi:
@@ -46,6 +46,10 @@ if __name__ == '__main__':
     fname = 'gc'
     if args.twophase:
         fname = fname+'.2p'
+    if args.mf_crit:
+        fname = fname+'.mcut'
+    if args.Rmax:
+        fname = fname+'.Rcut'
 
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
