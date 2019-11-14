@@ -51,8 +51,12 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=fsize, dpi=60)
 
     for num in mynums:
-        dirname = os.path.dirname(s.files['vtk'][0])
-        fvtk = os.path.join(dirname, '{0:s}.{1:04d}.vtk'.format(s.problem_id, num))
+        try:
+            dirname = os.path.dirname(s.files['vtk'][0])
+            fvtk = os.path.join(dirname, '{0:s}.{1:04d}.vtk'.format(s.problem_id, num))
+        except(IndexError):
+            dirname = os.path.dirname(s.files['vtk_id0'][0])
+            fvtk = os.path.join(dirname, '{0:s}.{1:04d}.vtk'.format(s.problem_id, num))
         if not os.path.exists(fvtk):
             continue
         print(num, end=' ')
