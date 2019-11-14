@@ -222,3 +222,9 @@ def sum_dataset(s, nums, twophase=False):
         # add
         dat += tmp
     return dat
+
+def read_stardat(fpath, num):
+    ds = np.loadtxt("{}/star{:05d}.dat".format(fpath, num))
+    return {'t':ds[:,0], 'm':ds[:,1], 'x1':ds[:,2], 'x2':ds[:,3], 'x3':ds[:,4],
+            'v1':ds[:,5], 'v2':ds[:,6], 'v3':ds[:,7], 'age':ds[:,8],
+            'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
