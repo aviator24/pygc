@@ -6,7 +6,7 @@ Author      | Sanghyuk Moon
 =======================================================================
 """
 from pygc.util import add_derived_fields, grid_msp
-from pygc.pot import gz_ext
+from pygc.pot import MHubble
 from pygc.ring import mask_ring_by_mass, _get_area
 from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
 from pyathena.io.read_vtk import read_vtk
@@ -15,6 +15,7 @@ import numpy as np
 import os
 
 Twarm = 2.e4
+extpot = MHubble(120, 265)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
@@ -94,7 +95,7 @@ if __name__ == '__main__':
         dat['gz_starpar'] = dat.gz_sg - gz_gas # order is important!
         dat['gz_gas'] = gz_gas # order is important!
         add_derived_fields(dat, 'R')
-        dat['gz_ext'] = gz_ext(dat.R, dat.z, TIGRESS_unit=True).T
+        dat['gz_ext'] = extpot.gz(dat.R, dat.z).T*u.Myr
 
         # add derived fields
         Pgrav_gas = -(dat.density*dat.gz_gas).where(dat.z>0).sum(dim='z')*dz
