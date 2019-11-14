@@ -113,6 +113,8 @@ if __name__ == '__main__':
             # delineate the ring by applying a mass cut
             surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
                     Rmax=args.Rmax)
+        elif args.twophase:
+            mask = dat.Pturb > 0
         else:
             mask = True
         area = _get_area(dat.where(mask))
