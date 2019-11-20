@@ -35,6 +35,7 @@ class Ferrers(pot):
     """n=1 Ferrers bar"""
     # TODO 3D generalization
     def __init__(self, rhobar, a, b):
+        super().__init__()
         self.rhobar = rhobar
         self.a = a
         self.b = b
@@ -66,30 +67,29 @@ class Ferrers(pot):
 class MHubble(pot):
     """Modified Hubble potential"""
     def __init__(self, rb, rhob):
+        super().__init__()
         self.r_b = rb
         self.rho_b = rhob
-    def Menc(self, r):
+    def Menc(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
         M = 4.*np.pi*self.r_b**3*self.rho_b*(np.log(r/self.r_b
             + np.sqrt(1.+r**2/self.r_b**2))
             - r/self.r_b/np.sqrt(1.+r**2/self.r_b**2))
         return M
-    def vcirc(self, R, z):
-        r = np.sqrt(R**2+z**2)
-        vsq = 4*np.pi*self.G*self.rho_b*self.r_b**2*(self.r_b/r*np.log(
-            r/self.r_b+np.sqrt(1.+r**2/self.r_b**2))
-            -1./np.sqrt(1.+r**2/self.r_b**2))
-        return np.sqrt(vsq)*R/r
+    def vcirc(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
+        return np.sqrt(self.G*self.Menc(x,y,z)/r)
     def rho(self, r):
         return self.rho_b / (1.+r**2/self.r_b**2)**1.5
     def gx(self, x, y, z):
         r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(r)*x/r**3
+        return -self.G*self.Menc(x,y,z)*x/r**3
     def gy(self, x, y, z):
         r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(r)*y/r**3
+        return -self.G*self.Menc(x,y,z)*y/r**3
     def gz(self, x, y, z):
         r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(r)*z/r**3
+        return -self.G*self.Menc(x,y,z)*z/r**3
 def vcirc_KE17(R):
     """Kim & Elmegreen (2017) rotation curve (R is given in pc)
     return in km/s
