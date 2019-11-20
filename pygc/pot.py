@@ -7,6 +7,26 @@ import numpy as np
 from astropy import units as au
 from astropy import constants as ac
 
+class rigid():
+    """rigid body rotation"""
+    def __init__(self, Omg):
+        self.Omg = Omg
+        self.Omg2 = Omg**2
+        self.G = ac.G.to('Msun-1 pc km2 s-2').value
+        self.rho = 3*self.Omg2/(4*np.pi*self.G)
+    def Menc(self, x, y, z):
+        r3 = (x**2+y**2+z**2)**1.5
+        return r3*self.Omg2/self.G
+    def Phi(self, x, y, z):
+        r2 = x**2 + y**2 + z**2
+        return 0.5*r2*Omg2
+    def gx(self, x, y, z):
+        return -x*self.Omg2
+    def gy(self, x, y, z):
+        return -y*self.Omg2
+    def gz(self, x, y, z):
+        return -z*self.Omg2
+
 class Ferrers():
     """n=1 Ferrers bar"""
     def __init__(self, rhobar, a, b):
