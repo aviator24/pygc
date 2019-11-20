@@ -10,6 +10,18 @@ class pot():
     """
     def __init__(self):
         self.G = ac.G.to('Msun-1 pc km2 s-2').value
+    def vcirc(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
+        return np.sqrt(self.G*self.Menc(x,y,z)/r)
+    def gx(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
+        return -self.G*self.Menc(x,y,z)*x/r**3
+    def gy(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
+        return -self.G*self.Menc(x,y,z)*y/r**3
+    def gz(self, x, y, z):
+        r = np.sqrt(x**2+y**2+z**2)
+        return -self.G*self.Menc(x,y,z)*z/r**3
 
 class rigid(pot):
     """rigid body rotation"""
@@ -76,20 +88,9 @@ class MHubble(pot):
             + np.sqrt(1.+r**2/self.r_b**2))
             - r/self.r_b/np.sqrt(1.+r**2/self.r_b**2))
         return M
-    def vcirc(self, x, y, z):
-        r = np.sqrt(x**2+y**2+z**2)
-        return np.sqrt(self.G*self.Menc(x,y,z)/r)
     def rho(self, r):
         return self.rho_b / (1.+r**2/self.r_b**2)**1.5
-    def gx(self, x, y, z):
-        r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(x,y,z)*x/r**3
-    def gy(self, x, y, z):
-        r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(x,y,z)*y/r**3
-    def gz(self, x, y, z):
-        r = np.sqrt(x**2+y**2+z**2)
-        return -self.G*self.Menc(x,y,z)*z/r**3
+
 def vcirc_KE17(R):
     """Kim & Elmegreen (2017) rotation curve (R is given in pc)
     return in km/s
