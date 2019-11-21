@@ -23,6 +23,18 @@ class pot():
         r = np.sqrt(x**2+y**2+z**2)
         return -self.G*self.Menc(x,y,z)*z/r**3
 
+class Plummer(pot):
+    def __init__(self, Mc, Rc):
+        super().__init__()
+        self.Mc = Mc
+        self.Rc = Rc
+    def Menc(self, x, y, z):
+        r2 = x**2 + y**2 + z**2
+        return self.Mc/(1.+self.Rc**2/r2)**1.5
+    def Phi(self, x, y, z):
+        r2 = x**2 + y**2 + z**2
+        return -self.G*self.Mc/np.sqrt(r2+self.Rc**2)
+
 class rigid(pot):
     """rigid body rotation"""
     def __init__(self, Omg):
