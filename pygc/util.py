@@ -1,4 +1,4 @@
-from .pot import gz_ext
+from .pot import MHubble
 from pyathena.util.units import Units
 from pyathena.classic.cooling import coolftn
 import numpy as np
@@ -7,6 +7,7 @@ import xarray as xr
 
 Twarm = 2.0e4
 u = Units()
+extpot = MHubble(120, 265)
 
 def wmean(arr, weights, dim):
     """
@@ -86,10 +87,8 @@ def add_derived_fields(dat, fields=[], in_place=True):
     if 'Pgrav' in fields:
         if not 'gz_sg' in dat.data_vars:
             add_derived_fields(dat, fields='gz_sg', in_place=True)
-        if not 'R' in dat.data_vars:
-            add_derived_fields(dat, fields='R', in_place=True)
         Pgrav = (dat.density*
-                    (dat.gz_sg+gz_ext(dat.R, dat.z, TIGRESS_unit=True))
+                    (dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)
                 ).where(dat.z>0).sum(dim='z')*dz
         if in_place:
             dat['Pgrav'] = -Pgrav

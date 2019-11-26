@@ -95,7 +95,7 @@ if __name__ == '__main__':
         dat['gz_starpar'] = dat.gz_sg - gz_gas # order is important!
         dat['gz_gas'] = gz_gas # order is important!
         add_derived_fields(dat, 'R')
-        dat['gz_ext'] = extpot.gz(dat.R, dat.z).T*u.Myr
+        dat['gz_ext'] = extpot.gz(dat.x, dat.y, dat.z).T
 
         # add derived fields
         Pgrav_gas = -(dat.density*dat.gz_gas).where(dat.z>0).sum(dim='z')*dz
