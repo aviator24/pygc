@@ -5,6 +5,7 @@ Description | Run gravity post-processing
 Author      | Sanghyuk Moon
 =================================================
 """
+# TODO make it work when indir is given as relative path
 import argparse
 import numpy as np
 import os
