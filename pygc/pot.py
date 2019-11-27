@@ -55,6 +55,25 @@ class rigid(pot):
     def gz(self, x, y, z):
         return -z*self.Omg2
 
+class Log(pot):
+    """Logarithmic potential"""
+    def __init__(self, v0, R0, q):
+        super().__init__()
+        self.v0 = v0
+        self.R0 = R0
+        self.q = q
+        self.v02 = v0**2
+        self.R02 = R0**2
+        self.q2 = q**2
+    def Phi(self, x, y):
+        return 0.5*self.v02*np.log(self.R02+x**2/self.q2+y**2)
+    def gx(self, x, y):
+        dnm = self.R02+x**2/self.q2+y**2
+        return -x*self.v02/self.q2/dnm
+    def gy(self, x, y):
+        dnm = self.R02+x**2/self.q2+y**2
+        return -y*self.v02/dnm
+
 class Ferrers(pot):
     """n=1 Ferrers bar"""
     # TODO 3D generalization
@@ -100,8 +119,9 @@ class MHubble(pot):
             + np.sqrt(1.+r**2/self.r_b**2))
             - r/self.r_b/np.sqrt(1.+r**2/self.r_b**2))
         return M
-    def rho(self, r):
-        return self.rho_b / (1.+r**2/self.r_b**2)**1.5
+    def rho(self, x, y, z):
+        r2 = x**2 + y**2 + z**2
+        return self.rho_b / (1.+r2/self.r_b**2)**1.5
 
 def vcirc_KE17(R):
     """Kim & Elmegreen (2017) rotation curve (R is given in pc)
