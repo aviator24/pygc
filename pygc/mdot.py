@@ -11,7 +11,7 @@ from pygc.pot import MHubble
 from pyathena.util.units import Units
 from scipy.optimize import bisect
 
-target_mdot = 1.0
+target_mdot = 5
 
 def Mdot(iflw_d0):
     Mdot = 0
@@ -20,6 +20,7 @@ def Mdot(iflw_d0):
                 - y0*np.sqrt(1.-iflw_mu**2))
         Mdot += iflw_d0*iflw_v0*iflw_mu
     Mdot *= dx*iflw_h
+    Mdot *= 2
     Mdot *= u.Msun / u.Myr / 1e6
     return Mdot - target_mdot
 
@@ -28,14 +29,14 @@ if __name__ == '__main__':
     m = MHubble(120, 265)
     Omega_0 = 0.04*u.Myr
     iflw_mu=np.cos(10*au.deg)
-    Rring = 100
+    Rring = 130
     iflw_b=80
-    iflw_w=40
-    iflw_h=40
+    iflw_w=50
+    iflw_h=50
     dx = 4
     hdx = dx>>1
     y0 = -256-hdx
     Lz0 = Rring*m.vcirc(Rring,0,0)
     iflw_d = bisect(Mdot, 1e-2, 1e3)
-    print(iflw_d)
-    print(Mdot(iflw_d))
+    print("{:.5f}".format(iflw_d))
+    print(Mdot(iflw_d)+target_mdot)
