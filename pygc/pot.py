@@ -56,23 +56,33 @@ class rigid(pot):
         return -z*self.Omg2
 
 class Log(pot):
-    """Logarithmic potential"""
+    """axisymmetric Logarithmic potential"""
     def __init__(self, v0, R0, q):
         super().__init__()
         self.v0 = v0
         self.R0 = R0
         self.q = q
-        self.v02 = v0**2
-        self.R02 = R0**2
+        self.v2 = v0**2
+        self.R2 = R0**2
         self.q2 = q**2
-    def Phi(self, x, y):
-        return 0.5*self.v02*np.log(self.R02+x**2/self.q2+y**2)
-    def gx(self, x, y):
-        dnm = self.R02+x**2/self.q2+y**2
-        return -x*self.v02/self.q2/dnm
-    def gy(self, x, y):
-        dnm = self.R02+x**2/self.q2+y**2
-        return -y*self.v02/dnm
+    def Phi(self, x, y, z):
+        return 0.5*self.v2*np.log(self.R2 + x**2 + y**2 + z**2/self.q2)
+    def vcirc(self, x, y, z):
+        return self.v0*np.sqrt(x**2 + y**2)/\
+                np.sqrt(self.R2 + x**2 + y**2 + z**2/self.q2)
+    def rho(self, x, y, z):
+        return self.v2/(4.*np.pi*self.G*self.q2)\
+                *((2.*self.q2+1.)*self.R2 + x**2 + y**2 + (2.-1./self.q2)*z**2)\
+                /(self.R2 + x**2 + y**2 + z**2/self.q2)**2
+    def gx(self, x, y, z):
+        dnm = self.R2 + x**2 + y**2 + z**2/self.q2
+        return -self.v2*x/dnm
+    def gy(self, x, y, z):
+        dnm = self.R2 + x**2 + y**2 + z**2/self.q2
+        return -self.v2*y/dnm
+    def gz(self, x, y, z):
+        dnm = self.R2 + x**2 + y**2 + z**2/self.q2
+        return -self.v2*z/self.q2/dnm
 
 class Ferrers(pot):
     """n=1 Ferrers bar"""
