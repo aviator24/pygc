@@ -7,11 +7,11 @@ Author      | Sanghyuk Moon
 """
 import numpy as np
 import astropy.units as au
-from pygc.pot import MHubble
+from pygc.pot import MHubble, Log, Plummer
 from pyathena.util.units import Units
 from scipy.optimize import bisect
 
-target_mdot = 5
+target_mdot = 2
 
 def Mdot(iflw_d0):
     Mdot = 0
@@ -25,18 +25,23 @@ def Mdot(iflw_d0):
     return Mdot - target_mdot
 
 if __name__ == '__main__':
+    dx = 8
     u=Units()
     m = MHubble(120, 265)
-    Omega_0 = 0.04*u.Myr
+    LP = Log(220, 200, 1)
+    BH = Plummer(1.4e8, dx)
+
+    Omega_0 = 0.036*u.Myr
     iflw_mu=np.cos(10*au.deg)
-    Rring = 130
-    iflw_b=80
-    iflw_w=50
-    iflw_h=50
-    dx = 4
+    Rring = 600
+    iflw_b=320
+    iflw_w=200
+    iflw_h=200
     hdx = dx>>1
-    y0 = -256-hdx
-    Lz0 = Rring*m.vcirc(Rring,0,0)
+    y0 = -1024-hdx
+
+    vc = np.sqrt(LP.vcirc(Rring,0,0)**2 + BH.vcirc(Rring,0,0)**2)
+    Lz0 = Rring*vc
     iflw_d = bisect(Mdot, 1e-2, 1e3)
-    print("{:.5f}".format(iflw_d))
+    print("{:.6f}".format(iflw_d))
     print(Mdot(iflw_d)+target_mdot)
