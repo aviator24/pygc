@@ -178,7 +178,7 @@ def grid_msp(s, num, agemin, agemax):
     sp['j'] = np.floor((sp.x2-le2)/dx2).astype('int32')
     sp = sp.groupby(['j','i']).sum()
     idx = pd.MultiIndex.from_product([j,i], names=['j','i'])
-    msp = pd.Series(np.nan*np.zeros(Nx1*Nx2), index=idx)
+    msp = pd.Series(np.zeros(Nx1*Nx2), index=idx)
     msp[sp.index] = sp.mass
     msp = msp.unstack().values
     msp = xr.DataArray(msp, dims=['y','x'], coords=[y,x])
