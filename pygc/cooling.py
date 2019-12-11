@@ -40,7 +40,11 @@ class Cooling(coolftn):
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
     def cr_le(self, nH):
         NHcell = nH*(self.dx*au.pc).cgs.value
-        return self.cr()*self.crNHcrit/NHcell
+        if NHcell > self.crNHcrit:
+            fac = self.crNHcrit/NHcell
+        else:
+            fac = 1.0
+        return self.cr()*fac
     def get_prs(self, nH, T):
         """
         Calculate pressure from density and temperature
