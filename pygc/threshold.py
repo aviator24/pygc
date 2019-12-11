@@ -14,6 +14,50 @@ from scipy.interpolate import interp1d
 
 muH = 1.4271
 
+class Cooling(coolftn):
+    def __init__(self, hr=1, dx=4):
+        # wrap classic.cooling and define interpolation functions
+        super().__init__()
+        self._kappa_d = 0.2 # pc2 Msun-1
+        self._coolft=interp1d(self.temp, self.cool)
+        self._heatft=interp1d(self.temp, self.heat)
+        self._muft=interp1d(self.temp, self.temp/self.T1)
+        self.heat_ratio = hr
+        self.dx = 4
+    def fuv_unatt(self, T):
+        return self.heat_ratio*self._heatft(T)
+    def fuv(self, nH, T):
+        taucell = (self._kappa_d*au.pc**2/au.Msun*self.dx*au.pc\
+                *muH*ac.m_p*nH/au.cm**3).cgs.value
+        return self.fuv_unatt(T)*np.exp(-taucell)
+    def cr(self):
+        return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value
+    def get_prs(self, nH, T):
+        """
+        Calculate pressure from density and temperature
+        """
+        prs = nH*muH/self._muft(T)*T
+        return prs
+    def get_Teq(self, nH, le=False, cr=False):
+        if le&cr:
+            heat = lambda x: nH*self.fuv(nH,x)+self.cr()
+        elif le:
+            heat = lambda x: nH*self.fuv(nH,x)
+        elif cr:
+            heat = lambda x: nH*self.fuv_unatt(x)+self.cr()
+        else:
+            heat = lambda x: nH*self.fuv_unatt(x)
+        cool = lambda x: nH**2*self._coolft(x)
+        try:
+            Teq = bisect(lambda x: heat(x)-cool(x), 12.95, 1e7)
+        except ValueError:
+            Teq = np.nan
+        return Teq
+    def get_Peq(self, nH, le=False, cr=False):
+        Teq = self.get_Teq(nH, le=le, cr=cr)
+        prs = self.get_prs(nH, Teq)
+        return prs
+
 class LPthres(coolftn):
     """
     Functions related to the Larson-Penston threshold
