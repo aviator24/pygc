@@ -15,38 +15,48 @@ from scipy.interpolate import interp1d
 muH = 1.4271
 
 class Cooling(coolftn):
-    def __init__(self, hr=1, dx=4):
+    def __init__(self, hr=1, dx=4, crNH=9.35e20):
         # wrap classic.cooling and define interpolation functions
         super().__init__()
         self._kappa_d = 0.2 # pc2 Msun-1
+        self.crNHcrit = 9.35e20
+        self.crNH = crNH
         self._coolft=interp1d(self.temp, self.cool)
         self._heatft=interp1d(self.temp, self.heat)
         self._muft=interp1d(self.temp, self.temp/self.T1)
         self.heat_ratio = hr
         self.dx = 4
-    def fuv_unatt(self, T):
+    def fuv(self, T):
         return self.heat_ratio*self._heatft(T)
-    def fuv(self, nH, T):
+    def fuv_le(self, nH, T):
         taucell = (self._kappa_d*au.pc**2/au.Msun*self.dx*au.pc\
                 *muH*ac.m_p*nH/au.cm**3).cgs.value
-        return self.fuv_unatt(T)*np.exp(-taucell)
+        return self.fuv(T)*np.exp(-taucell)
     def cr(self):
-        return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value
+        if self.crNH > self.crNHcrit:
+            return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
+        else:
+            return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value
+            # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
+    def cr_le(self, nH):
+        NHcell = nH*(self.dx*au.pc).cgs.value
+        return self.cr()*self.crNHcrit/NHcell
     def get_prs(self, nH, T):
         """
         Calculate pressure from density and temperature
         """
         prs = nH*muH/self._muft(T)*T
         return prs
-    def get_Teq(self, nH, le=False, cr=False):
-        if le&cr:
-            heat = lambda x: nH*self.fuv(nH,x)+self.cr()
-        elif le:
-            heat = lambda x: nH*self.fuv(nH,x)
-        elif cr:
-            heat = lambda x: nH*self.fuv_unatt(x)+self.cr()
+    def get_Teq(self, nH, fuvle=False, cr=False, crle=False):
+        if fuvle:
+            if cr&crle:
+                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr_le(nH))
+            elif cr:
+                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr())
+            else:
+                heat = lambda x: nH*(self.fuv_le(nH,x))
         else:
-            heat = lambda x: nH*self.fuv_unatt(x)
+            heat = lambda x: nH*self.fuv(x)
         cool = lambda x: nH**2*self._coolft(x)
         try:
             Teq = bisect(lambda x: heat(x)-cool(x), 12.95, 1e7)
@@ -57,37 +67,6 @@ class Cooling(coolftn):
         Teq = self.get_Teq(nH, le=le, cr=cr)
         prs = self.get_prs(nH, Teq)
         return prs
-
-class LPthres(coolftn):
-    """
-    Functions related to the Larson-Penston threshold
-    """
-    def __init__(self):
-        # wrap classic.cooling and define interpolation functions
-        super().__init__()
-        self.coolft=interp1d(self.temp, self.cool)
-        self.heatft=interp1d(self.temp, self.heat)
-        self.muft=interp1d(self.temp, self.temp/self.T1)
-
-    def get_Teq(self, heat_ratio, nH):
-        """
-        Calculate equilibrium temperature at given density and heating ratio.
-        heat_ratio = (FUV heating rate) / (solar neighborhood FUV heating rate)
-        """
-        try:
-            Teq = bisect(lambda x: heat_ratio*self.heatft(x)/nH - self.coolft(x)
-                    ,12.95,1e7)
-        except ValueError:
-            Teq = np.nan
-        return Teq
-
-    def get_prs(self, nH, T):
-        """
-        Calculate pressure from density and temperature
-        """
-        prs = nH*muH/self.muft(T)*T
-        return prs
-
     def get_rhoLP(self, dx, cs2, asnH=True):
         """
         Calculate LP threshold density
@@ -106,7 +85,6 @@ class LPthres(coolftn):
         else:
             rhoLP = rhoLP.to('Msun pc**-3').value
         return rhoLP
-
     def get_rhoLPeq(self, dx, Teq, asnH=True):
         """
         Caculate LP threshold density from given temperature,
@@ -120,7 +98,7 @@ class LPthres(coolftn):
             Teq = Teq.to('K')
         else:
             Teq = Teq * au.K
-        cs2=ac.k_B*Teq/self.muft(Teq)/ac.m_p
+        cs2=ac.k_B*Teq/self._muft(Teq)/ac.m_p
         return self.get_rhoLP(dx, cs2, asnH=asnH)
 
 if __name__ == '__main__':
