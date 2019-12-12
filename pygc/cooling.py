@@ -25,7 +25,7 @@ class Cooling(coolftn):
         self._heatft=interp1d(self.temp, self.heat)
         self._muft=interp1d(self.temp, self.temp/self.T1)
         self.heat_ratio = hr
-        self.dx = 4
+        self.dx = dx
     def fuv(self, T):
         return self.heat_ratio*self._heatft(T)
     def fuv_le(self, nH, T):
