@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 muH = 1.4271
 
 class Cooling(coolftn):
-    def __init__(self, hr=1, dx=4, crNH=9.35e20):
+    def __init__(self, hr=1, dx=4, crNH=9.35e20, efftau=1):
         # wrap classic.cooling and define interpolation functions
         super().__init__()
         self._kappa_d = 0.2 # pc2 Msun-1
@@ -25,13 +25,14 @@ class Cooling(coolftn):
         self._heatft=interp1d(self.temp, self.heat)
         self._muft=interp1d(self.temp, self.temp/self.T1)
         self.heat_ratio = hr
+        self.efftau = efftau
         self.dx = dx
     def fuv(self, T):
         return self.heat_ratio*self._heatft(T)
     def fuv_le(self, nH, T):
         taucell = (self._kappa_d*au.pc**2/au.Msun*self.dx*au.pc\
                 *muH*ac.m_p*nH/au.cm**3).cgs.value
-        return self.fuv(T)*np.exp(-taucell)
+        return self.fuv(T)*np.exp(-self.efftau*taucell)
     def cr(self):
         if self.crNH > self.crNHcrit:
             return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
