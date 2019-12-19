@@ -98,7 +98,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
     if 'T' in fields:
         cf = coolftn()
         pok = dat.pressure*u.pok
-        T1 = pok/dat.density*u.muH
+        T1 = pok/(dat.density*u.muH) # muH = Dcode/mH
         if in_place:
             dat['T'] = xr.DataArray(cf.get_temp(T1.values), coords=T1.coords,
                     dims=T1.dims)
