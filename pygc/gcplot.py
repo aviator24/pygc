@@ -57,6 +57,7 @@ if __name__ == '__main__':
 #            dirname = os.path.dirname(s.files['vtk'][0])
 #            fvtk = os.path.join(dirname, '{0:s}.{1:04d}.vtk'.format(s.problem_id, num))
         if not os.path.exists(fvtk):
+            print('file {} does not exists; skipping.'.format(fvtk))
             continue
         print(num, end=' ')
         plt_all(s, num, fig, with_starpar=True)
