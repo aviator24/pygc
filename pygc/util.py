@@ -236,7 +236,7 @@ def read_ring(indir, ns, ne, fm_crit=False, twophase=False):
     if twophase:
         fname = fname+'.2p'
     if fm_crit:
-        fname = fname+'.mcut'
+        fname = fname+'.mcut{}'.format(fm_crit)
     for num in nums:
         try:
             ds = np.loadtxt("{}/{}.{:04d}.txt".format(indir, fname, num))
