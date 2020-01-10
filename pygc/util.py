@@ -227,3 +227,50 @@ def read_stardat(fpath, num):
     return {'t':ds[:,0], 'm':ds[:,1], 'x1':ds[:,2], 'x2':ds[:,3], 'x3':ds[:,4],
             'v1':ds[:,5], 'v2':ds[:,6], 'v3':ds[:,7], 'age':ds[:,8],
             'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
+
+def read_ring(indir, ns, ne, fm_crit=False, twophase=False):
+    t, surf, surfstar, surfsfr, n0, H, Hs, sz, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
+    Pturb, Pth, area = [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    nums = np.arange(ns, ne+1)
+    fname = 'gc'
+    if twophase:
+        fname = fname+'.2p'
+    if fm_crit:
+        fname = fname+'.mcut'
+    for num in nums:
+        try:
+            ds = np.loadtxt("{}/{}.{:04d}.txt".format(indir, fname, num))
+            t.append(ds[0])
+            surf.append(ds[1])
+            surfstar.append(ds[2])
+            surfsfr.append(ds[3])
+            n0.append(ds[4])
+            H.append(ds[5])
+            Hs.append(ds[6])
+            sz.append(ds[7])
+            Pgrav_gas.append(ds[8])
+            Pgrav_starpar.append(ds[9])
+            Pgrav_ext.append(ds[10])
+            Pturb.append(ds[11])
+            Pth.append(ds[12])
+            area.append(ds[13])
+        except OSError:
+            pass
+    t = np.array(t)*u.Myr
+    surf = np.array(surf)*u.Msun
+    surfstar = np.array(surfstar)*u.Msun
+    surfsfr = np.array(surfsfr)*u.Msun/u.Myr
+    n0 = np.array(n0)
+    H = np.array(H)
+    Hs = np.array(Hs)
+    sz = np.array(sz)
+    Pgrav_gas = np.array(Pgrav_gas)*u.pok
+    Pgrav_starpar = np.array(Pgrav_starpar)*u.pok
+    Pgrav_ext = np.array(Pgrav_ext)*u.pok
+    Pturb = np.array(Pturb)*u.pok
+    Pth = np.array(Pth)*u.pok
+    return {'t':t, 'surf':surf, 'surfstar':surfstar, 'surfsfr':surfsfr, 'n0':n0,
+            'H':H, 'Hs':Hs, 'sz':sz, 'Pgrav_gas':Pgrav_gas,
+            'Pgrav_starpar':Pgrav_starpar, 'Pgrav_ext':Pgrav_ext, 
+            'Pturb':Pturb, 'Pth':Pth}
+
