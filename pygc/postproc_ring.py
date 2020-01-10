@@ -54,7 +54,7 @@ if __name__ == '__main__':
     if args.twophase:
         fname = fname+'.2p'
     if args.mf_crit:
-        fname = fname+'.mcut'
+        fname = fname+'.mcut{}'.format(args.mf_crit)
 
     nums = np.arange(args.start,args.end+1)
     if args.mpi:
