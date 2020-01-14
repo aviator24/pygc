@@ -129,7 +129,7 @@ if __name__ == '__main__':
         surf = dat.surf.where(mask).mean().values[()]
         msp = grid_msp(s, num, 0, 1e10)
         surfstar = msp.where(mask).sum().values[()]/area
-        agebin = 1/s.u.Myr
+        agebin = 10/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
         surfsfr = msp.where(mask).sum().values[()]/area/agebin
 
