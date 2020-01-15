@@ -169,7 +169,7 @@ def grid_msp(s, num, agemin, agemax):
     x = np.linspace(le1+0.5*dx1, re1-0.5*dx1, Nx1)
     y = np.linspace(le2+0.5*dx2, re2-0.5*dx2, Nx2)
     # load starpar vtk
-    sp = s.load_starpar_vtk(num)[['x1','x2','mass','mage']]
+    sp = s.load_starpar_vtk(num, force_override=True)[['x1','x2','mass','mage']]
     # apply age cut
     sp = sp[(sp['mage'] < agemax)&
             (sp['mage'] > agemin)]
