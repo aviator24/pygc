@@ -73,7 +73,7 @@ if __name__ == '__main__':
 
     for num in mynums:
         ds = s.load_vtk(num)
-        sp = s.load_starpar_vtk(num)
+        sp = s.load_starpar_vtk(num, force_override=True)
         t = ds.domain['time']
         dat = ds.get_field(['density','velocity','pressure',
             'gravitational_potential'], as_xarray=True)

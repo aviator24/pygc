@@ -228,15 +228,15 @@ def read_stardat(fpath, num):
             'v1':ds[:,5], 'v2':ds[:,6], 'v3':ds[:,7], 'age':ds[:,8],
             'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
 
-def read_ring(indir, ns, ne, fm_crit=False, twophase=False):
+def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     t, surf, surfstar, surfsfr, n0, H, Hs, sz, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
     Pturb, Pth, area = [], [], [], [], [], [], [], [], [], [], [], [], [], []
     nums = np.arange(ns, ne+1)
     fname = 'gc'
     if twophase:
         fname = fname+'.2p'
-    if fm_crit:
-        fname = fname+'.mcut{}'.format(fm_crit)
+    if mf_crit:
+        fname = fname+'.mcut{}'.format(mf_crit)
     for num in nums:
         try:
             ds = np.loadtxt("{}/{}.{:04d}.txt".format(indir, fname, num))
