@@ -205,7 +205,9 @@ def sum_dataset(s, nums, twophase=False):
         dat = dat.where(dat.T < Twarm, other=0)
         dat = dat.drop('T')
         dat['gravitational_potential'] = Phi
-    add_derived_fields(dat, fields=['R','Pturb','Pgrav'], in_place=True)
+    add_derived_fields(dat, fields=['R','surf','Pturb','Pgrav'], in_place=True)
+    dat['surfsfr'] = grid_msp(s,nums[0],0,10/u.Myr)\
+            /(s.domain['dx'][0]*s.domain['dx'][1])/(10/u.Myr)
 
     # loop through vtks
     for num in nums[1:]:
@@ -217,7 +219,9 @@ def sum_dataset(s, nums, twophase=False):
             tmp = tmp.where(tmp.T < Twarm, other=0)
             tmp = tmp.drop('T')
             tmp['gravitational_potential'] = Phi
-        add_derived_fields(tmp, fields=['R','Pturb','Pgrav'], in_place=True)
+        add_derived_fields(tmp, fields=['R','surf','Pturb','Pgrav'], in_place=True)
+        tmp['surfsfr'] = grid_msp(s,num,0,10/u.Myr)\
+                /(s.domain['dx'][0]*s.domain['dx'][1])/(10/u.Myr)
         # add
         dat += tmp
     return dat
