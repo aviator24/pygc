@@ -6,7 +6,7 @@ Author      | Sanghyuk Moon
 =================================================
 """
 from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
-from pyathena.tigress_gc.plt_tigress_gc import plt_all
+from pyathena.tigress_gc.plt_tigress_gc import plt_all, plt_proj
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,6 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('start', type=int, help='start index')
     parser.add_argument('end', type=int, help='end index')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
+    parser.add_argument('--kind', type=str, default='all', help='which plot?')
     args = parser.parse_args()
 
     if args.mpi:
@@ -47,8 +48,13 @@ if __name__ == '__main__':
     s = LoadSimTIGRESSGC(args.indir, verbose=False)
 
     # create figure instance
-    fsize = (32,18)
-    fig = plt.figure(figsize=fsize, dpi=60)
+    if args.kind=='all':
+        fsize = (32,18)
+    elif args.kind=='proj':
+        fsize=(13,12)
+    else:
+        raise ValueError("--kind must be either 'all' or 'proj'")
+    fig = plt.figure(figsize=fsize)
 
     for num in mynums:
         dirname = os.path.dirname(s.files['vtk_id0'][0])
@@ -60,7 +66,12 @@ if __name__ == '__main__':
             print('file {} does not exists; skipping.'.format(fvtk))
             continue
         print(num, end=' ')
-        plt_all(s, num, fig, with_starpar=True)
+        if args.kind=='all':
+            plt_all(s, num, fig, with_starpar=True)
+        elif args.kind=='proj':
+            plt_proj(s, num, fig)
+        else:
+            raise ValueError("--kind must be either 'all' or 'proj'")
         fig.clf()
 
     if args.mpi: 
