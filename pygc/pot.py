@@ -132,6 +132,12 @@ class MHubble(pot):
     def rho(self, x, y, z):
         r2 = x**2 + y**2 + z**2
         return self.rho_b / (1.+r2/self.r_b**2)**1.5
+    def Phi(self, x, y, z):
+        r2 = x**2 + y**2 + z**2
+        r = np.sqrt(r2)
+        phi = -4*np.pi*self.G*self.rho_b*self.r_b**3/r*np.log(r/self.r_b
+                + np.sqrt(1.+r2/self.r_b**2))
+        return phi
 
 def vcirc_KE17(R):
     """Kim & Elmegreen (2017) rotation curve (R is given in pc)
