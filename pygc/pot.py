@@ -1,4 +1,3 @@
-from pyathena.util.units import Units
 import numpy as np
 from astropy import units as au
 from astropy import constants as ac
