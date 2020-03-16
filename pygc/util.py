@@ -4,6 +4,7 @@ from pyathena.classic.cooling import coolftn
 import numpy as np
 import pandas as pd
 import xarray as xr
+import re
 
 Twarm = 2.0e4
 u = Units()
