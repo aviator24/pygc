@@ -53,7 +53,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
 
     if 'H' in fields:
         zsq = (dat.z.where(~np.isnan(dat.density)))**2
-        H2 = wmean(zsq, dat.density, 'z')
+        H2 = wmean(zsq, dat.density, 'z')/2.
         if in_place:
             dat['H'] = np.sqrt(H2)
         else:
