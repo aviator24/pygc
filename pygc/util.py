@@ -81,7 +81,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
         if not 'gz_sg' in dat.data_vars:
             add_derived_fields(dat, fields='gz_sg', in_place=True)
         Pgrav = (dat.density*(dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)*dz
-                ).sum(dim='z')/2.
+                ).where(dat.z>0).sum(dim='z')
         if in_place:
             dat['Pgrav'] = -Pgrav
         else:
