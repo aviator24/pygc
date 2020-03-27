@@ -137,7 +137,7 @@ if __name__ == '__main__':
 
         n0 = dat.density.where(mask).mean().values[()]
         H = dat.H.where(mask).mean().values[()]
-        Hs = np.sqrt((sp.mass*sp.x3**2).sum()/sp.mass.sum())
+        Hs = np.sqrt(0.5*(sp.mass*sp.x3**2).sum()/sp.mass.sum())
 
         Pgrav_gas = Pgrav_gas.where(mask).mean().values[()]
         Pgrav_starpar = Pgrav_starpar.where(mask).mean().values[()]
