@@ -117,9 +117,9 @@ if __name__ == '__main__':
         add_derived_fields(dat, ['surf','H','Pturb'])
         dat = dat.drop('velocity3')
 
-        dat['pressure'] = dat.pressure.sel(z=0, method='nearest')
-        dat['Pturb'] = dat.Pturb.sel(z=0, method='nearest')
-        dat['density'] = dat.density.sel(z=0, method='nearest')
+        dat['Pth_mid'] = dat.pressure.interp(z=0)
+        dat['Pturb_mid'] = dat.Pturb.interp(z=0)
+        dat['n0'] = dat.density.interp(z=0)
         dat['Ptot_top'] = 0.5*(dat.Pturb.isel(z=-1)+dat.pressure.isel(z=-1)
                               +dat.Pturb.isel(z=0)+dat.pressure.isel(z=0))
 
@@ -128,7 +128,7 @@ if __name__ == '__main__':
             surf_th, mask = mask_ring_by_mass(dat, mf_crit=args.mf_crit,
                     Rmax=args.Rmax)
         elif args.twophase:
-            mask = dat.Pturb > 0
+            mask = dat.Pturb_mid > 0
         else:
             mask = True
         area = _get_area(dat.where(mask))
@@ -140,7 +140,7 @@ if __name__ == '__main__':
         msp = grid_msp(s, num, 0, agebin)
         surfsfr = msp.where(mask).sum().values[()]/area/agebin
 
-        n0 = dat.density.where(mask).mean().values[()]
+        n0 = dat.n0.where(mask).mean().values[()]
         H = dat.H.where(mask).mean().values[()]
         if flag_sp:
             Hs = np.sqrt(0.5*(sp.mass*sp.x3**2).sum()/sp.mass.sum())
@@ -150,8 +150,8 @@ if __name__ == '__main__':
         Pgrav_gas = Pgrav_gas.where(mask).mean().values[()]
         Pgrav_starpar = Pgrav_starpar.where(mask).mean().values[()]
         Pgrav_ext = Pgrav_ext.where(mask).mean().values[()]
-        Pturb = dat.Pturb.where(mask).mean().values[()]
-        Pth = dat.pressure.where(mask).mean().values[()]
+        Pturb = dat.Pturb_mid.where(mask).mean().values[()]
+        Pth = dat.Pth_mid.where(mask).mean().values[()]
         Ptot_top = dat.Ptot_top.where(mask).mean().values[()]
 
         np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num),
