@@ -104,9 +104,9 @@ if __name__ == '__main__':
         dat['gz_ext'] = bul.gz(dat.x, dat.y, dat.z).T + BH.gz(dat.x, dat.y, dat.z).T
 
         # add derived fields
-        Pgrav_gas = -(dat.density*dat.gz_gas).where(dat.z>0).sum(dim='z')*dz
-        Pgrav_starpar = -(dat.density*dat.gz_starpar).where(dat.z>0).sum(dim='z')*dz
-        Pgrav_ext = -(dat.density*dat.gz_ext).where(dat.z>0).sum(dim='z')*dz
+        Pgrav_gas = -(dat.density*dat.gz_gas*dz).sum(dim='z')/2.
+        Pgrav_starpar = -(dat.density*dat.gz_starpar*dz).sum(dim='z')/2.
+        Pgrav_ext = -(dat.density*dat.gz_ext*dz).sum(dim='z')/2.
 
         dat = dat.drop(['gz_sg', 'gz_starpar', 'gz_gas', 'gz_ext'])
         add_derived_fields(dat, ['surf','H','Pturb'])
@@ -115,6 +115,8 @@ if __name__ == '__main__':
         dat['pressure'] = dat.pressure.sel(z=0, method='nearest')
         dat['Pturb'] = dat.Pturb.sel(z=0, method='nearest')
         dat['density'] = dat.density.sel(z=0, method='nearest')
+        dat['Ptot_top'] = 0.5*(dat.Pturb.isel(z=-1)+dat.pressure.isel(z=-1)
+                              +dat.Pturb.isel(z=0)+dat.pressure.isel(z=0))
 
         if args.mf_crit:
             # delineate the ring by applying a mass cut
@@ -142,7 +144,8 @@ if __name__ == '__main__':
         Pgrav_ext = Pgrav_ext.where(mask).mean().values[()]
         Pturb = dat.Pturb.where(mask).mean().values[()]
         Pth = dat.pressure.where(mask).mean().values[()]
+        Ptot_top = dat.Ptot_top.where(mask).mean().values[()]
 
         np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num),
-                [t, surf, surfstar, surfsfr, n0, H, Hs,
-                    Pgrav_gas, Pgrav_starpar, Pgrav_ext, Pturb, Pth, area])
+            [t, surf, surfstar, surfsfr, n0, H, Hs,
+            Pgrav_gas, Pgrav_starpar, Pgrav_ext, Pturb, Pth, Ptot_top, area])

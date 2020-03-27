@@ -80,9 +80,8 @@ def add_derived_fields(dat, fields=[], in_place=True):
     if 'Pgrav' in fields:
         if not 'gz_sg' in dat.data_vars:
             add_derived_fields(dat, fields='gz_sg', in_place=True)
-        Pgrav = (dat.density*
-                    (dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)
-                ).where(dat.z>0).sum(dim='z')*dz
+        Pgrav = (dat.density*(dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)*dz
+                ).sum(dim='z')/2.
         if in_place:
             dat['Pgrav'] = -Pgrav
         else:
@@ -227,7 +226,8 @@ def read_stardat(fpath, num):
 
 def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     t, surf, surfstar, surfsfr, n0, H, Hs, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
-    Pturb, Pth, area = [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    Pturb, Pth, Ptot_top, area = [], [], [], [], [], [], [], [], [], [], [], [],\
+    [], [], []
     nums = np.arange(ns, ne+1)
     fname = 'gc'
     if twophase:
@@ -249,7 +249,8 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
             Pgrav_ext.append(ds[9])
             Pturb.append(ds[10])
             Pth.append(ds[11])
-            area.append(ds[12])
+            Ptot_top.append(ds[12])
+            area.append(ds[13])
         except OSError:
             pass
     t = np.array(t)*u.Myr
@@ -264,10 +265,11 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     Pgrav_ext = np.array(Pgrav_ext)*u.pok
     Pturb = np.array(Pturb)*u.pok
     Pth = np.array(Pth)*u.pok
+    Ptot_top = np.array(Ptot_top)*u.pok
     return {'t':t, 'surf':surf, 'surfstar':surfstar, 'surfsfr':surfsfr, 'n0':n0,
             'H':H, 'Hs':Hs, 'Pgrav_gas':Pgrav_gas,
             'Pgrav_starpar':Pgrav_starpar, 'Pgrav_ext':Pgrav_ext, 
-            'Pturb':Pturb, 'Pth':Pth}
+            'Pturb':Pturb, 'Pth':Pth, 'Ptot_top':Ptot_top}
 
 def _parse_line(rx, line):
     """
