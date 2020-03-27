@@ -73,7 +73,12 @@ if __name__ == '__main__':
 
     for num in mynums:
         ds = s.load_vtk(num)
-        sp = s.load_starpar_vtk(num, force_override=True)
+        try:
+            sp = s.load_starpar_vtk(num)
+            flag_sp = True
+        except:
+            print("no star particles are found")
+            flag_sp = False
         t = ds.domain['time']
         dat = ds.get_field(['density','velocity','pressure',
             'gravitational_potential'], as_xarray=True)
@@ -137,7 +142,10 @@ if __name__ == '__main__':
 
         n0 = dat.density.where(mask).mean().values[()]
         H = dat.H.where(mask).mean().values[()]
-        Hs = np.sqrt(0.5*(sp.mass*sp.x3**2).sum()/sp.mass.sum())
+        if flag_sp:
+            Hs = np.sqrt(0.5*(sp.mass*sp.x3**2).sum()/sp.mass.sum())
+        else:
+            Hs = 0
 
         Pgrav_gas = Pgrav_gas.where(mask).mean().values[()]
         Pgrav_starpar = Pgrav_starpar.where(mask).mean().values[()]
