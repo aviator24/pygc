@@ -227,7 +227,7 @@ def read_stardat(fpath, num):
 def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     t, surf, surfstar, surfsfr, n0, H, Hs, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
     Pturb, Pth, Ptot_top, area = [], [], [], [], [], [], [], [], [], [], [], [],\
-    [], [], []
+    [], []
     nums = np.arange(ns, ne+1)
     fname = 'gc'
     if twophase:
