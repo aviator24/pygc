@@ -109,7 +109,7 @@ if __name__ == '__main__':
         Pgrav_ext = -(dat.density*dat.gz_ext).where(dat.z>0).sum(dim='z')*dz
 
         dat = dat.drop(['gz_sg', 'gz_starpar', 'gz_gas', 'gz_ext'])
-        add_derived_fields(dat, ['surf','H','sz'])
+        add_derived_fields(dat, ['surf','H','Pturb'])
         dat = dat.drop('velocity3')
 
         dat['pressure'] = dat.pressure.sel(z=0, method='nearest')
@@ -136,7 +136,6 @@ if __name__ == '__main__':
         n0 = dat.density.where(mask).mean().values[()]
         H = dat.H.where(mask).mean().values[()]
         Hs = np.sqrt((sp.mass*sp.x3**2).sum()/sp.mass.sum())
-        sz = dat.sz.where(mask).mean().values[()]
 
         Pgrav_gas = Pgrav_gas.where(mask).mean().values[()]
         Pgrav_starpar = Pgrav_starpar.where(mask).mean().values[()]
@@ -145,5 +144,5 @@ if __name__ == '__main__':
         Pth = dat.pressure.where(mask).mean().values[()]
 
         np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num),
-                [t, surf, surfstar, surfsfr, n0, H, Hs, sz,
+                [t, surf, surfstar, surfsfr, n0, H, Hs,
                     Pgrav_gas, Pgrav_starpar, Pgrav_ext, Pturb, Pth, area])

@@ -65,14 +65,6 @@ def add_derived_fields(dat, fields=[], in_place=True):
         else:
             tmp['surf'] = (dat.density*dz).sum(dim='z')
 
-    if 'sz' in fields:
-        if not 'Pturb' in dat.data_vars:
-            add_derived_fields(dat, fields='Pturb', in_place=True)
-        if in_place:
-            dat['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
-        else:
-            tmp['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
-
     if 'R' in fields:
         if in_place:
             dat.coords['R'] = np.sqrt(dat.x**2 + dat.y**2)
@@ -234,7 +226,7 @@ def read_stardat(fpath, num):
             'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
 
 def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
-    t, surf, surfstar, surfsfr, n0, H, Hs, sz, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
+    t, surf, surfstar, surfsfr, n0, H, Hs, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
     Pturb, Pth, area = [], [], [], [], [], [], [], [], [], [], [], [], [], []
     nums = np.arange(ns, ne+1)
     fname = 'gc'
@@ -252,13 +244,12 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
             n0.append(ds[4])
             H.append(ds[5])
             Hs.append(ds[6])
-            sz.append(ds[7])
-            Pgrav_gas.append(ds[8])
-            Pgrav_starpar.append(ds[9])
-            Pgrav_ext.append(ds[10])
-            Pturb.append(ds[11])
-            Pth.append(ds[12])
-            area.append(ds[13])
+            Pgrav_gas.append(ds[7])
+            Pgrav_starpar.append(ds[8])
+            Pgrav_ext.append(ds[9])
+            Pturb.append(ds[10])
+            Pth.append(ds[11])
+            area.append(ds[12])
         except OSError:
             pass
     t = np.array(t)*u.Myr
@@ -268,14 +259,13 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     n0 = np.array(n0)
     H = np.array(H)
     Hs = np.array(Hs)
-    sz = np.array(sz)
     Pgrav_gas = np.array(Pgrav_gas)*u.pok
     Pgrav_starpar = np.array(Pgrav_starpar)*u.pok
     Pgrav_ext = np.array(Pgrav_ext)*u.pok
     Pturb = np.array(Pturb)*u.pok
     Pth = np.array(Pth)*u.pok
     return {'t':t, 'surf':surf, 'surfstar':surfstar, 'surfsfr':surfsfr, 'n0':n0,
-            'H':H, 'Hs':Hs, 'sz':sz, 'Pgrav_gas':Pgrav_gas,
+            'H':H, 'Hs':Hs, 'Pgrav_gas':Pgrav_gas,
             'Pgrav_starpar':Pgrav_starpar, 'Pgrav_ext':Pgrav_ext, 
             'Pturb':Pturb, 'Pth':Pth}
 
