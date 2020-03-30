@@ -133,12 +133,15 @@ if __name__ == '__main__':
         area = _get_area(dat.where(mask))
 
         surf = dat.surf.where(mask).mean().values[()]
-        msp = grid_msp(s, num, 0, 1e10)
-        surfstar = msp.where(mask).sum().values[()]/area
-        agebin = 10/s.u.Myr
-        msp = grid_msp(s, num, 0, agebin)
-        surfsfr = msp.where(mask).sum().values[()]/area/agebin
-
+        if flag_sp:
+            msp = grid_msp(s, num, 0, 1e10)
+            surfstar = msp.where(mask).sum().values[()]/area
+            agebin = 10/s.u.Myr
+            msp = grid_msp(s, num, 0, agebin)
+            surfsfr = msp.where(mask).sum().values[()]/area/agebin
+        else:
+            surfstar = 0
+            surfsfr = 0
         n0 = dat.n0.where(mask).mean().values[()]
         H = dat.H.where(mask).mean().values[()]
         if flag_sp:
