@@ -266,6 +266,7 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     Pturb = np.array(Pturb)*u.pok
     Pth = np.array(Pth)*u.pok
     Ptot_top = np.array(Ptot_top)*u.pok
+    area = np.array(area)
     return {'t':t, 'surf':surf, 'surfstar':surfstar, 'surfsfr':surfsfr, 'n0':n0,
             'H':H, 'Hs':Hs, 'Pgrav_gas':Pgrav_gas,
             'Pgrav_starpar':Pgrav_starpar, 'Pgrav_ext':Pgrav_ext, 
