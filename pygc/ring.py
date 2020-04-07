@@ -5,6 +5,7 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     """mask ring by applying density threshold and radius cut"""
     mask = True
     R_mask = True
+    surf_th = 0
 
     if Rmax:
         if not 'R' in dat.data_vars:
