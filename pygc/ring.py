@@ -6,6 +6,7 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     mask = True
     R_mask = True
     surf_th = 0
+    Mtot = _Mabove(dat, 0)
 
     if Rmax:
         if not 'R' in dat.data_vars:
@@ -15,7 +16,6 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     if mf_crit:
         if Rmax:
             dat = dat.where(R_mask, other=0)
-        Mtot = _Mabove(dat, 0)
         surf_th = bisect(lambda x: mf_crit*Mtot-_Mabove(dat, x), 1e1, 1e5)
         mask = dat.surf > surf_th
 
