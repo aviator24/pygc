@@ -10,7 +10,6 @@ import re
 
 Twarm = 2.0e4
 u = Units()
-extpot = MHubble(120, 265)
 
 def wmean(arr, weights, dim):
     """
@@ -78,16 +77,6 @@ def add_derived_fields(dat, fields=[], in_place=True):
             dat['Pturb'] = dat.density*dat.velocity3**2
         else:
             tmp['Pturb'] = dat.density*dat.velocity3**2
-
-    if 'Pgrav' in fields:
-        if not 'gz_sg' in dat.data_vars:
-            add_derived_fields(dat, fields='gz_sg', in_place=True)
-        Pgrav = (dat.density*(dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)*dz
-                ).where(dat.z>0).sum(dim='z')
-        if in_place:
-            dat['Pgrav'] = -Pgrav
-        else:
-            tmp['Pgrav'] = -Pgrav
 
     if 'T' in fields:
         cf = coolftn()
