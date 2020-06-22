@@ -1,13 +1,12 @@
-from .pot import MHubble
 from pyathena.util.units import Units
 from pyathena.classic.cooling import coolftn
 import numpy as np
 import pandas as pd
 import xarray as xr
+import re
 
 Twarm = 2.0e4
 u = Units()
-extpot = MHubble(120, 265)
 
 def wmean(arr, weights, dim):
     """
@@ -52,7 +51,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
 
     if 'H' in fields:
         zsq = (dat.z.where(~np.isnan(dat.density)))**2
-        H2 = wmean(zsq, dat.density, 'z')
+        H2 = wmean(zsq, dat.density, 'z')/2.
         if in_place:
             dat['H'] = np.sqrt(H2)
         else:
@@ -63,14 +62,6 @@ def add_derived_fields(dat, fields=[], in_place=True):
             dat['surf'] = (dat.density*dz).sum(dim='z')
         else:
             tmp['surf'] = (dat.density*dz).sum(dim='z')
-
-    if 'sz' in fields:
-        if not 'Pturb' in dat.data_vars:
-            add_derived_fields(dat, fields='Pturb', in_place=True)
-        if in_place:
-            dat['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
-        else:
-            tmp['sz'] = np.sqrt((dat.Pturb/dat.density).interp(z=0))
 
     if 'R' in fields:
         if in_place:
@@ -83,17 +74,6 @@ def add_derived_fields(dat, fields=[], in_place=True):
             dat['Pturb'] = dat.density*dat.velocity3**2
         else:
             tmp['Pturb'] = dat.density*dat.velocity3**2
-
-    if 'Pgrav' in fields:
-        if not 'gz_sg' in dat.data_vars:
-            add_derived_fields(dat, fields='gz_sg', in_place=True)
-        Pgrav = (dat.density*
-                    (dat.gz_sg+extpot.gz(dat.x, dat.y, dat.z).T)
-                ).where(dat.z>0).sum(dim='z')*dz
-        if in_place:
-            dat['Pgrav'] = -Pgrav
-        else:
-            tmp['Pgrav'] = -Pgrav
 
     if 'T' in fields:
         cf = coolftn()
@@ -233,8 +213,9 @@ def read_stardat(fpath, num):
             'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
 
 def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
-    t, surf, surfstar, surfsfr, n0, H, Hs, sz, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
-    Pturb, Pth, area = [], [], [], [], [], [], [], [], [], [], [], [], [], []
+    t, surf, surfstar, surfsfr, n0, H, Hs, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
+    Pturb, Pth, Ptot_top, area = [], [], [], [], [], [], [], [], [], [], [], [],\
+    [], []
     nums = np.arange(ns, ne+1)
     fname = 'gc'
     if twophase:
@@ -251,12 +232,12 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
             n0.append(ds[4])
             H.append(ds[5])
             Hs.append(ds[6])
-            sz.append(ds[7])
-            Pgrav_gas.append(ds[8])
-            Pgrav_starpar.append(ds[9])
-            Pgrav_ext.append(ds[10])
-            Pturb.append(ds[11])
-            Pth.append(ds[12])
+            Pgrav_gas.append(ds[7])
+            Pgrav_starpar.append(ds[8])
+            Pgrav_ext.append(ds[9])
+            Pturb.append(ds[10])
+            Pth.append(ds[11])
+            Ptot_top.append(ds[12])
             area.append(ds[13])
         except OSError:
             pass
@@ -267,14 +248,92 @@ def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     n0 = np.array(n0)
     H = np.array(H)
     Hs = np.array(Hs)
-    sz = np.array(sz)
     Pgrav_gas = np.array(Pgrav_gas)*u.pok
     Pgrav_starpar = np.array(Pgrav_starpar)*u.pok
     Pgrav_ext = np.array(Pgrav_ext)*u.pok
     Pturb = np.array(Pturb)*u.pok
     Pth = np.array(Pth)*u.pok
+    Ptot_top = np.array(Ptot_top)*u.pok
+    area = np.array(area)
     return {'t':t, 'surf':surf, 'surfstar':surfstar, 'surfsfr':surfsfr, 'n0':n0,
-            'H':H, 'Hs':Hs, 'sz':sz, 'Pgrav_gas':Pgrav_gas,
+            'H':H, 'Hs':Hs, 'Pgrav_gas':Pgrav_gas,
             'Pgrav_starpar':Pgrav_starpar, 'Pgrav_ext':Pgrav_ext, 
-            'Pturb':Pturb, 'Pth':Pth}
+            'Pturb':Pturb, 'Pth':Pth, 'Ptot_top':Ptot_top, 'area':area}
 
+def _parse_line(rx, line):
+    """
+    Do a regex search against given regex and
+    return the match result.
+
+    """
+
+    match = rx.search(line)
+    if match:
+        return match
+    # if there are no matches
+    return None
+
+def parse_file(filepath):
+    """
+    Parse text at given filepath
+
+    Parameters
+    ----------
+    filepath : str
+        Filepath for file_object to be parsed
+
+    Returns
+    -------
+    data : pd.DataFrame
+        Parsed data
+
+    """
+
+    data = []  # create an empty list to collect the data
+    # open the file and read through it line by line
+    with open(filepath, 'r') as file_object:
+        line = file_object.readline()
+        while line:
+            # at each line check for a match with a regex
+            rx = re.compile(r't=([0-9\.]+).*x=\((-?\d+),(-?\d+),(-?\d+)\).*n=([0-9\.]+).*nth=([0-9\.]+).*P=([0-9\.]+).*cs=([0-9\.]+)')
+            match = _parse_line(rx, line)
+            if match:
+                time = float(match[1])
+                x = float(match[2])
+                y = float(match[3])
+                z = float(match[4])
+                rho = float(match[5])
+                rho_crit = float(match[6])
+                prs = float(match[7])
+                cs = float(match[8])
+                line = file_object.readline()
+                rx = re.compile(r'navg=(-?[0-9\.]+).*id=(\d+).*m=(-?[0-9\.]+).*nGstars=(\d+)')
+                match = _parse_line(rx, line)
+                navg = float(match[1])
+                idstar = int(match[2])
+                mstar = float(match[3])
+                nGstars = int(match[4])
+                if (mstar > 0):
+                    row = {
+                        'time': time,
+                        'x': x,
+                        'y': y,
+                        'z': z,
+                        'rho': rho,
+                        'rho_crit': rho_crit,
+                        'prs': prs,
+                        'cs': cs,
+                        'navg': navg,
+                        'idstar': idstar,
+                        'mstar': mstar,
+                        'nGstars': nGstars
+                    }
+                    data.append(row)
+            else:
+                line = file_object.readline()
+
+        # create a pandas DataFrame from the list of dicts
+        data = pd.DataFrame(data)
+        # set the School, Grade, and Student number as the index
+        data.sort_values('time', inplace=True)
+    return data
