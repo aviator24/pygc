@@ -35,9 +35,9 @@ class Cooling(coolftn):
         return self.fuv(T)*np.exp(-self.efftau*taucell)
     def cr(self):
         if self.crNH > self.crNHcrit:
-            return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
+            return self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
         else:
-            return self.heat_ratio*(11.5*au.eV*2e-16/au.s).to('erg s-1').value
+            return self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
     def cr_le(self, nH):
         NHcell = nH*(self.dx*au.pc).cgs.value
