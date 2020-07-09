@@ -33,12 +33,16 @@ class Cooling(coolftn):
         taucell = (self._kappa_d*au.pc**2/au.Msun*self.dx*au.pc\
                 *muH*ac.m_p*nH/au.cm**3).cgs.value
         return self.fuv(T)*np.exp(-self.efftau*taucell)
-    def cr(self):
+    def cr(self, T):
+        muion = 0.6182
+        muato = 1.295
         if self.crNH > self.crNHcrit:
-            return self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
+            
+            heat = self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
         else:
-            return self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value
+            heat = self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
+        return (self._muft(T) - muion)/(muato-muion)*heat
     def get_prs(self, nH, T):
         """
         Calculate pressure from density and temperature
@@ -48,7 +52,7 @@ class Cooling(coolftn):
     def get_Teq(self, nH, fuvle=False, cr=False):
         if fuvle:
             if cr:
-                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr())
+                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr(x))
             else:
                 heat = lambda x: nH*(self.fuv_le(nH,x))
         else:
