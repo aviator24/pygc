@@ -39,24 +39,15 @@ class Cooling(coolftn):
         else:
             return self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
-    def cr_le(self, nH):
-        NHcell = nH*(self.dx*au.pc).cgs.value
-        if NHcell > self.crNHcrit:
-            fac = self.crNHcrit/NHcell
-        else:
-            fac = 1.0
-        return self.cr()*fac
     def get_prs(self, nH, T):
         """
         Calculate pressure from density and temperature
         """
         prs = nH*muH/self._muft(T)*T
         return prs
-    def get_Teq(self, nH, fuvle=False, cr=False, crle=False):
+    def get_Teq(self, nH, fuvle=False, cr=False):
         if fuvle:
-            if cr&crle:
-                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr_le(nH))
-            elif cr:
+            if cr:
                 heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr())
             else:
                 heat = lambda x: nH*(self.fuv_le(nH,x))
