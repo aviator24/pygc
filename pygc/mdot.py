@@ -29,7 +29,7 @@ if __name__ == '__main__':
     dx = 8
     hdx = dx>>1
     iflw_mu=np.cos(10*au.deg)
-    Omega_0 = 0.036*u.Myr
+    Omega_0 = 0.036
 
 ###### Small ring #####
 #    Rring =150
