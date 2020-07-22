@@ -35,7 +35,8 @@ if __name__ == '__main__':
     Rring =150
     iflw_b=80
     iflw_w=50
-    iflw_h=50
+# due to the lower Nx in small ring model, iflw_h=50 does not fit into the grid.
+    iflw_h=52
     y0 = -256-hdx # this is the cell center position of the first ghost zone
     bul = MHubble(250, 50)
     BH = Plummer(1.4e8, 20)
