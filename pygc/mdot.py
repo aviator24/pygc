@@ -11,7 +11,7 @@ from pygc.pot import MHubble, Log, Plummer
 from pyathena.util.units import Units
 from scipy.optimize import bisect
 
-target_mdot = 2
+target_mdot = 0.125
 
 def Mdot(iflw_d0):
     Mdot = 0
@@ -26,27 +26,27 @@ def Mdot(iflw_d0):
 
 if __name__ == '__main__':
     u=Units()
-    dx = 8
+    dx = 2
     hdx = dx>>1
     iflw_mu=np.cos(10*au.deg)
     Omega_0 = 0.036
 
 ###### Small ring #####
-#    Rring =150
-#    iflw_b=80
-#    iflw_w=50
-#    iflw_h=50
-#    y0 = -256-dx
-#    bul = MHubble(250, 50)
-#    BH = Plummer(1.4e8, 20)
-###### Large ring #####
-    Rring =600
-    iflw_b=320
-    iflw_w=200
-    iflw_h=200
-    y0 = -1024-dx
+    Rring =150
+    iflw_b=80
+    iflw_w=50
+    iflw_h=50
+    y0 = -256-hdx # this is the cell center position of the first ghost zone
     bul = MHubble(250, 50)
     BH = Plummer(1.4e8, 20)
+###### Large ring #####
+#    Rring =600
+#    iflw_b=320
+#    iflw_w=200
+#    iflw_h=200
+#    y0 = -1024-hdx # this is the cell center position of the first ghost zone
+#    bul = MHubble(250, 50)
+#    BH = Plummer(1.4e8, 20)
 
     vc = np.sqrt(bul.vcirc(Rring,0,0)**2 + BH.vcirc(Rring,0,0)**2)
     Lz0 = Rring*vc
