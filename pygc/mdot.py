@@ -36,7 +36,7 @@ if __name__ == '__main__':
 #    iflw_b=80
 #    iflw_w=50
 #    iflw_h=50
-#    y0 = -256-hdx
+#    y0 = -256-dx
 #    bul = MHubble(250, 50)
 #    BH = Plummer(1.4e8, 20)
 ###### Large ring #####
@@ -44,7 +44,7 @@ if __name__ == '__main__':
     iflw_b=320
     iflw_w=200
     iflw_h=200
-    y0 = -1024-hdx
+    y0 = -1024-dx
     bul = MHubble(250, 50)
     BH = Plummer(1.4e8, 20)
 
