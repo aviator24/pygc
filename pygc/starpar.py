@@ -89,10 +89,11 @@ def intsp(x, y, vx, vy, accel, N=1000, dt=1e-2, Omega_0=1.0, method="Boris"):
             gy += Omega_0**2*y
             vx += gx*0.5*hdt
             vy += gy*0.5*hdt
-            vtx = vx + vy*Omega_0*hdt
-            vty = vy - vx*Omega_0*hdt
-            vpx = vx + 2*vty*Omega_0*hdt/(1.0+Omega_0**2*hdt**2)
-            vpy = vy - 2*vtx*Omega_0*hdt/(1.0+Omega_0**2*hdt**2)
+            tan = Omega_0*hdt
+            cos = (1-tan**2)/(1+tan**2)
+            sin = 2*tan/(1+tan**2)
+            vpx = cos*vx + sin*vy
+            vpy = -sin*vx + cos*vy
             vx = vpx + gx*0.5*hdt
             vy = vpy + gy*0.5*hdt
             # drift
@@ -104,10 +105,11 @@ def intsp(x, y, vx, vy, accel, N=1000, dt=1e-2, Omega_0=1.0, method="Boris"):
             gy += Omega_0**2*y
             vx += gx*0.5*hdt
             vy += gy*0.5*hdt
-            vtx = vx + vy*Omega_0*hdt
-            vty = vy - vx*Omega_0*hdt
-            vpx = vx + 2*vty*Omega_0*hdt/(1.0+Omega_0**2*hdt**2)
-            vpy = vy - 2*vtx*Omega_0*hdt/(1.0+Omega_0**2*hdt**2)
+            tan = Omega_0*hdt
+            cos = (1-tan**2)/(1+tan**2)
+            sin = 2*tan/(1+tan**2)
+            vpx = cos*vx + sin*vy
+            vpy = -sin*vx + cos*vy       
             vx = vpx + gx*0.5*hdt
             vy = vpy + gy*0.5*hdt
             # advance time
