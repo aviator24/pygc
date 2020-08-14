@@ -42,9 +42,12 @@ def add_derived_fields(dat, fields=[], in_place=True):
                ex) ['H', 'surf', 'T']
     """
 
-    dx = (dat.x[1]-dat.x[0]).values[()]
-    dy = (dat.y[1]-dat.y[0]).values[()]
-    dz = (dat.z[1]-dat.z[0]).values[()]
+    try:
+        dx = (dat.x[1]-dat.x[0]).values[()]
+        dy = (dat.y[1]-dat.y[0]).values[()]
+        dz = (dat.z[1]-dat.z[0]).values[()]
+    except IndexError:
+        pass
 
     if not in_place:
         tmp = dat.copy()

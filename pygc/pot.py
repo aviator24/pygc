@@ -46,7 +46,7 @@ class rigid(pot):
         return r3*self.Omg2/self.G
     def Phi(self, x, y, z):
         r2 = x**2 + y**2 + z**2
-        return 0.5*r2*Omg2
+        return 0.5*r2*self.Omg2
     def gx(self, x, y, z):
         return -x*self.Omg2
     def gy(self, x, y, z):
