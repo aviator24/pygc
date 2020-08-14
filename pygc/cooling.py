@@ -15,12 +15,12 @@ from scipy.interpolate import interp1d
 muH = 1.4271
 
 class Cooling(coolftn):
-    def __init__(self, hr=1, dx=4, crNH=9.35e20, efftau=1):
+    def __init__(self, hr=None, dx=None, surf=None, efftau=None):
         # wrap classic.cooling and define interpolation functions
         super().__init__()
         self._kappa_d = 0.2 # pc2 Msun-1
-        self.crNHcrit = 9.35e20
-        self.crNH = crNH
+        self.surf0 = 10.7
+        self.surf = surf
         self._coolft=interp1d(self.temp, self.cool)
         self._heatft=interp1d(self.temp, self.heat)
         self._muft=interp1d(self.temp, self.temp/self.T1)
@@ -42,9 +42,9 @@ class Cooling(coolftn):
         """
         muion = 0.6182
         muato = 1.295
-        if self.crNH > self.crNHcrit:
+        if self.surf > self.surf0:
             
-            heat = self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value*self.crNHcrit/self.crNH
+            heat = self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value*self.surf0/self.surf
         else:
             heat = self.heat_ratio*(10*au.eV*2e-16/au.s).to('erg s-1').value
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
