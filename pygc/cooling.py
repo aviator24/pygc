@@ -68,9 +68,9 @@ class Cooling(coolftn):
         except ValueError:
             Teq = np.nan
         return Teq
-    def get_Peq(self, nH, le=False, cr=False, turb=0):
+    def get_Peq(self, nH, fuvle=False, cr=False, turb=0):
         """Calculate equilibrium pressure at the density n_H"""
-        Teq = self.get_Teq(nH, le=le, cr=cr, turb=turb)
+        Teq = self.get_Teq(nH, fuvle=fuvle, cr=cr, turb=turb)
         prs = self.get_prs(nH, Teq)
         return prs
     def get_rhoLP(self, dx, cs2, asnH=True):
