@@ -53,24 +53,24 @@ class Cooling(coolftn):
         """Calculate pressure from density and temperature"""
         prs = nH*muH/self._muft(T)*T
         return prs
-    def get_Teq(self, nH, fuvle=False, cr=False):
+    def get_Teq(self, nH, fuvle=False, cr=False, turb=0):
         """Calculate equilibrium temperature at the density n_H"""
         if fuvle:
             if cr:
-                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr(x))
+                heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr(x)+turb*2e-26)
             else:
-                heat = lambda x: nH*(self.fuv_le(nH,x))
+                heat = lambda x: nH*(self.fuv_le(nH,x)+turb*2e-26)
         else:
-            heat = lambda x: nH*self.fuv(x)
+            heat = lambda x: nH*self.fuv(x)+turb*2e-26
         cool = lambda x: nH**2*self._coolft(x)
         try:
             Teq = bisect(lambda x: heat(x)-cool(x), 12.95, 1e7)
         except ValueError:
             Teq = np.nan
         return Teq
-    def get_Peq(self, nH, le=False, cr=False):
+    def get_Peq(self, nH, le=False, cr=False, turb=0):
         """Calculate equilibrium pressure at the density n_H"""
-        Teq = self.get_Teq(nH, le=le, cr=cr)
+        Teq = self.get_Teq(nH, le=le, cr=cr, turb=turb)
         prs = self.get_prs(nH, Teq)
         return prs
     def get_rhoLP(self, dx, cs2, asnH=True):
