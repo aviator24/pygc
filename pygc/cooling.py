@@ -28,12 +28,18 @@ class Cooling(coolftn):
         self.efftau = efftau
         self.dx = dx
     def fuv(self, T):
+        """return tabulated FUV heating rate"""
         return self.heat_ratio*self._heatft(T)
     def fuv_le(self, nH, T):
+        """return FUV heating rate at density n_H with the local extinction"""
         taucell = (self._kappa_d*au.pc**2/au.Msun*self.dx*au.pc\
                 *muH*ac.m_p*nH/au.cm**3).cgs.value
         return self.fuv(T)*np.exp(-self.efftau*taucell)
     def cr(self, T):
+        """
+        Return cosmic ray heating rate.
+        The heating rate is diminished above the critical surface density.
+        """
         muion = 0.6182
         muato = 1.295
         if self.crNH > self.crNHcrit:
@@ -44,12 +50,11 @@ class Cooling(coolftn):
             # note that heat_ratio = SFR/SFR_sn, such that heat_ratio*2e-16 = primary CR rate.
         return (self._muft(T) - muion)/(muato-muion)*heat
     def get_prs(self, nH, T):
-        """
-        Calculate pressure from density and temperature
-        """
+        """Calculate pressure from density and temperature"""
         prs = nH*muH/self._muft(T)*T
         return prs
     def get_Teq(self, nH, fuvle=False, cr=False):
+        """Calculate equilibrium temperature at the density n_H"""
         if fuvle:
             if cr:
                 heat = lambda x: nH*(self.fuv_le(nH,x)+self.cr(x))
@@ -64,13 +69,12 @@ class Cooling(coolftn):
             Teq = np.nan
         return Teq
     def get_Peq(self, nH, le=False, cr=False):
+        """Calculate equilibrium pressure at the density n_H"""
         Teq = self.get_Teq(nH, le=le, cr=cr)
         prs = self.get_prs(nH, Teq)
         return prs
     def get_rhoLP(self, dx, cs2, asnH=True):
-        """
-        Calculate LP threshold density
-        """
+        """Calculate LP threshold density"""
         if isinstance(dx, au.quantity.Quantity):
             dx = dx.to('pc')
         else:
