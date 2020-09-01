@@ -95,9 +95,9 @@ def add_derived_fields(dat, fields=[], in_place=True):
         phir.loc[{'z':phir.z[-1]}] = 3*phir.isel(z=-2) - 3*phir.isel(z=-3) + phir.isel(z=-4)
         phil.loc[{'z':phir.z[0]}] = 3*phil.isel(z=1) - 3*phil.isel(z=2) + phil.isel(z=3)
         if in_place:
-            dat['gz_sg'] = (phil-phir)/dz
+            dat['gz_sg'] = (phil-phir)/(2*dz)
         else:
-            tmp['gz_sg'] = (phil-phir)/dz
+            tmp['gz_sg'] = (phil-phir)/(2*dz)
 
     if not in_place:
         return tmp

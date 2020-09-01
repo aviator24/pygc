@@ -102,7 +102,7 @@ if __name__ == '__main__':
         phil = Phigas.shift(z=1)
         phir.loc[{'z':phir.z[-1]}] = 3*phir.isel(z=-2) - 3*phir.isel(z=-3) + phir.isel(z=-4)
         phil.loc[{'z':phir.z[0]}] = 3*phil.isel(z=1) - 3*phil.isel(z=2) + phil.isel(z=3)
-        gz_gas = (phil-phir)/dz
+        gz_gas = (phil-phir)/(2*dz)
         dat['gz_starpar'] = dat.gz_sg - gz_gas # order is important!
         dat['gz_gas'] = gz_gas # order is important!
         add_derived_fields(dat, 'R')
