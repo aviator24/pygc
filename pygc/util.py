@@ -188,10 +188,19 @@ def sum_dataset(s, nums, twophase=False):
         dat = dat.where(dat.T < Twarm, other=0)
         dat = dat.drop('T')
         dat['gravitational_potential'] = Phi
-    add_derived_fields(dat, fields=['R','surf','Pturb','Pgrav'], in_place=True)
+    add_derived_fields(dat, fields=['R','T','surf','Pturb','Pgrav'])
     dat['surfsfr'] = grid_msp(s,nums[0],0,10/u.Myr)\
             /(s.domain['dx'][0]*s.domain['dx'][1])/(10/u.Myr)
-
+    cos = dat.x/np.sqrt(dat.x**2+dat.y**2)
+    sin = dat.y/np.sqrt(dat.x**2+dat.y**2)
+    dat['vr'] = dat.velocity1*cos + dat.velocity2*sin
+    dat['vp'] = -dat.velocity1*sin + dat.velocity2*cos
+    dat['vz'] = dat.velocity3
+    dat = dat.drop(['velocity1','velocity2','velocity3'])
+    dat['vr2'] = dat.vr**2
+    dat['vp2'] = dat.vp**2
+    dat['vz2'] = dat.vz**2
+    dat['H'] = 2.5*dat.pressure/dat.density
     # loop through vtks
     for num in nums[1:]:
         ds = s.load_vtk(num=num)
@@ -202,9 +211,19 @@ def sum_dataset(s, nums, twophase=False):
             tmp = tmp.where(tmp.T < Twarm, other=0)
             tmp = tmp.drop('T')
             tmp['gravitational_potential'] = Phi
-        add_derived_fields(tmp, fields=['R','surf','Pturb','Pgrav'], in_place=True)
+        add_derived_fields(tmp, fields=['R','T','surf','Pturb','Pgrav'])
         tmp['surfsfr'] = grid_msp(s,num,0,10/u.Myr)\
                 /(s.domain['dx'][0]*s.domain['dx'][1])/(10/u.Myr)
+        cos = tmp.x/np.sqrt(tmp.x**2+tmp.y**2)
+        sin = tmp.y/np.sqrt(tmp.x**2+tmp.y**2)
+        tmp['vr'] = tmp.velocity1*cos + tmp.velocity2*sin
+        tmp['vp'] = -tmp.velocity1*sin + tmp.velocity2*cos
+        tmp['vz'] = tmp.velocity3
+        tmp = tmp.drop(['velocity1','velocity2','velocity3'])
+        tmp['vr2'] = tmp.vr**2
+        tmp['vp2'] = tmp.vp**2
+        tmp['vz2'] = tmp.vz**2
+        tmp['H'] = 2.5*tmp.pressure/tmp.density
         # add
         dat += tmp
     return dat
