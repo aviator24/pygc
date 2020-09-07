@@ -223,6 +223,82 @@ def read_stardat(fpath, num):
             'v1':ds[:,5], 'v2':ds[:,6], 'v3':ds[:,7], 'age':ds[:,8],
             'mage':ds[:,9], 'mdot':ds[:,10], 'merge_history':ds[:,11]}
 
+def read_warmcold(indir, ns, ne):
+    t, sz, cs, H = [], [], [], []
+
+    nums = np.arange(ns, ne+1)
+    fname = 'gc'
+
+    for num in nums:
+        try:
+            ds = np.loadtxt("{}/{}.{:04d}.txt".format(indir, fname, num))
+            t.append(ds[0])
+            sz.append(ds[1])
+            cs.append(ds[2])
+            H.append(ds[3])
+        except OSError:
+            pass
+    t = np.array(t)*u.Myr
+    sz = np.array(sz)
+    cs = np.array(cs)
+    H = np.array(H)
+    return {'t':t, 'sz':sz, 'cs':cs, 'H':H}
+
+def read_ringprops(indir, ns, ne):
+    t, area, surf, surfsfr_ring, surfsfr_whole,\
+    Pth_mid, Pturb_mid, Pth_top, Pturb_top,\
+    Wgas, Wsp, Wext, Wgas_oneside, Wsp_oneside, Wext_oneside, n0, surfstar =\
+    [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], [], []
+
+    nums = np.arange(ns, ne+1)
+    fname = 'gc'
+
+    for num in nums:
+        try:
+            ds = np.loadtxt("{}/{}.{:04d}.txt".format(indir, fname, num))
+            t.append(ds[0])
+            area.append(ds[1])
+            surf.append(ds[2])
+            surfsfr_ring.append(ds[3])
+            surfsfr_whole.append(ds[4])
+            Pth_mid.append(ds[5])
+            Pturb_mid.append(ds[6])
+            Pth_top.append(ds[7])
+            Pturb_top.append(ds[8])
+            Wgas.append(ds[9])
+            Wsp.append(ds[10])
+            Wext.append(ds[11])
+            Wgas_oneside.append(ds[12])
+            Wsp_oneside.append(ds[13])
+            Wext_oneside.append(ds[14])
+            n0.append(ds[15])
+            surfstar.append(ds[16])
+        except OSError:
+            pass
+    t = np.array(t)*u.Myr
+    area = np.array(area)
+    surf = np.array(surf)*u.Msun
+    surfsfr_ring = np.array(surfsfr_ring)*u.Msun/u.Myr
+    surfsfr_whole = np.array(surfsfr_whole)*u.Msun/u.Myr
+    Pth_mid = np.array(Pth_mid)*u.pok
+    Pturb_mid = np.array(Pturb_mid)*u.pok
+    Pth_top = np.array(Pth_top)*u.pok
+    Pturb_top = np.array(Pturb_top)*u.pok
+    Wgas = np.array(Wgas)*u.pok
+    Wsp = np.array(Wsp)*u.pok
+    Wext = np.array(Wext)*u.pok
+    Wgas_oneside = np.array(Wgas_oneside)*u.pok
+    Wsp_oneside = np.array(Wsp_oneside)*u.pok
+    Wext_oneside = np.array(Wext_oneside)*u.pok
+    n0 = np.array(n0)
+    surfstar = np.array(surfstar)*u.Msun
+    return {'t':t, 'area':area, 'surf':surf, 'surfsfr_ring':surfsfr_ring,
+            'surfsfr_whole':surfsfr_whole, 'Pth_mid':Pth_mid,
+            'Pturb_mid':Pturb_mid, 'Pth_top':Pth_top, 'Pturb_top':Pturb_top,
+            'Wgas':Wgas, 'Wsp':Wsp, 'Wext':Wext, 'Wgas_oneside':Wgas_oneside,
+            'Wsp_oneside':Wsp_oneside, 'Wext_oneside':Wext_oneside, 'n0':n0,
+            'surfstar':surfstar}
+
 def read_ring(indir, ns, ne, mf_crit=False, twophase=False):
     t, surf, surfstar, surfsfr, n0, H, Hs, Pgrav_gas, Pgrav_starpar, Pgrav_ext, \
     Pturb, Pth, Ptot_top, area = [], [], [], [], [], [], [], [], [], [], [], [],\
