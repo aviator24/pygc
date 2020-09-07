@@ -64,4 +64,4 @@ if __name__ == '__main__':
         add_derived_fields(dat, ['sz','cs','H'])
 
         np.savetxt("{}/{}.{:04d}.txt".format(outdir,fname,num),
-            [t, sz, cs, H])
+            [t, dat.sz, dat.cs, dat.H])
