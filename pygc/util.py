@@ -8,30 +8,6 @@ import re
 Twarm = 2.0e4
 u = Units()
 
-def wmean(arr, weights, dim):
-    """
-    Function to compute weighted mean of xarray.
-
-    Parameters
-    ----------
-    arr : DataArray
-        Input array to calculate weighted mean. May contain NaNs.
-    weights : DataArray
-        Array containing weights.
-    dim : 'x', 'y', or 'z'
-        xarray dimension to perform weighted mean.
-
-    Return
-    ------
-    (\int arr * w) / (\int w)
-
-    """
-    if type(arr) is not xr.core.dataarray.DataArray:
-        raise Exception("only xarray type is supported!\n")
-    else:
-        notnull = arr.notnull()
-        return (arr * weights).sum(dim=dim) / weights.where(notnull).sum(dim=dim)
-
 def add_derived_fields(dat, fields=[], in_place=True):
     """Add derived fields in a Dataset
 
@@ -53,8 +29,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
         tmp = dat.copy()
 
     if 'H' in fields:
-        zsq = (dat.z.where(~np.isnan(dat.density)))**2
-        H2 = wmean(zsq, dat.density, 'z')/2.
+        H2 = (dat.density*dat.z**2).sum()/(dat.density.sum()
         if in_place:
             dat['H'] = np.sqrt(H2)
         else:
