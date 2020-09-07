@@ -29,14 +29,14 @@ def add_derived_fields(dat, fields=[], in_place=True):
         tmp = dat.copy()
 
     if 'sz' in fields:
-        sz2 = (dat.density*dat.velocity3**2).sum()/dat.density.sum()
+        sz2 = (dat.density*dat.velocity3**2).interp(z=0).sum()/dat.density.interp(z=0).sum()
         if in_place:
             dat['sz'] = np.sqrt(sz2)
         else:
             tmp['sz'] = np.sqrt(sz2)
 
     if 'cs' in fields:
-        cs2 = dat.pressure.sum()/dat.density.sum()
+        cs2 = dat.pressure.interp(z=0).sum()/dat.density.interp(z=0).sum()
         if in_place:
             dat['cs'] = np.sqrt(cs2)
         else:
