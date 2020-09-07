@@ -27,7 +27,7 @@ def mask_ring_by_mass(dat, mf_crit=0.9, Rmax=None):
     mask = mask & R_mask
     return surf_th, mask
 
-def ring_avg(s, num, mask, twophase=False, sfr_dt=10):
+def ring_avg(s, num, mask, sfr_dt=10):
     dz = s.domain['dx'][2]
     bul = MHubble(s.par['problem']['R_b'], s.par['problem']['rho_b'])
     BH = Plummer(s.par['problem']['M_c'], s.par['problem']['R_c'])
@@ -43,16 +43,7 @@ def ring_avg(s, num, mask, twophase=False, sfr_dt=10):
     dat = ds.get_field(['density','velocity','pressure',
         'gravitational_potential'], as_xarray=True)
     dat = dat.drop(['velocity1','velocity2'])
-
-    if twophase:
-        add_derived_fields(dat, ['T','gz_sg'])
-        gz_sg = dat.gz_sg
-        # select two-phase gas
-        dat = dat.where(dat.T < Twarm)
-        dat = dat.drop('T')
-        dat['gz_sg'] = gz_sg
-    else:
-        add_derived_fields(dat, ['gz_sg'])
+    add_derived_fields(dat, 'gz_sg')
     dat = dat.drop('gravitational_potential')
 
     # seperate individual contributions to the gravitational field.
@@ -65,22 +56,27 @@ def ring_avg(s, num, mask, twophase=False, sfr_dt=10):
     gz_gas = (phil-phir)/(2*dz)
     dat['gz_starpar'] = dat.gz_sg - gz_gas # order is important!
     dat['gz_gas'] = gz_gas # order is important!
-    add_derived_fields(dat, 'R')
     dat['gz_ext'] = bul.gz(dat.x, dat.y, dat.z).T + BH.gz(dat.x, dat.y, dat.z).T
 
     # add derived fields
-    Pgrav_gas = -(dat.density*dat.gz_gas*dz).where(dat.z>0).sum(dim='z')
-    Pgrav_starpar = -(dat.density*dat.gz_starpar*dz).where(dat.z>0).sum(dim='z')
-    Pgrav_ext = -(dat.density*dat.gz_ext*dz).where(dat.z>0).sum(dim='z')
+    
+    dat['Wgas'] = 0.5*(dat.density*abs(dat.gz_gas)*dz).sum(dim='z')
+    dat['Wsp'] = 0.5*(dat.density*abs(dat.gz_starpar)*dz).sum(dim='z')
+    dat['Wext'] = 0.5*(dat.density*abs(dat.gz_ext)*dz).sum(dim='z')
+
+    dat['Wgas_oneside'] = -(dat.density*dat.gz_gas    *dz).where(dat.z>0).sum(dim='z')
+    dat['Wsp_oneside']  = -(dat.density*dat.gz_starpar*dz).where(dat.z>0).sum(dim='z')
+    dat['Wext_oneside'] = -(dat.density*dat.gz_ext    *dz).where(dat.z>0).sum(dim='z')
 
     dat = dat.drop(['gz_sg', 'gz_starpar', 'gz_gas', 'gz_ext'])
-    add_derived_fields(dat, ['surf','H','Pturb'])
+    add_derived_fields(dat, ['surf','Pturb'])
     dat = dat.drop('velocity3')
 
+    dat['n0'] = dat.density.interp(z=0)
     dat['Pth_mid'] = dat.pressure.interp(z=0)
     dat['Pturb_mid'] = dat.Pturb.interp(z=0)
-    dat['n0'] = dat.density.interp(z=0)
-    dat['Ptot_top'] = dat.Pturb.isel(z=-1)+dat.pressure.isel(z=-1)
+    dat['Pth_top'] = 0.5*(dat.pressure.isel(z=-1)+dat.pressure.isel(z=0))
+    dat['Pturb_top'] = 0.5*(dat.Pturb.isel(z=-1)+dat.Pturb.isel(z=0))
 
     area = _get_area(dat.where(mask))
 
@@ -90,25 +86,25 @@ def ring_avg(s, num, mask, twophase=False, sfr_dt=10):
         surfstar = msp.where(mask).sum().values[()]/area
         agebin = sfr_dt/s.u.Myr
         msp = grid_msp(s, num, 0, agebin)
-        surfsfr = msp.where(mask).sum().values[()]/area/agebin
+        surfsfr_ring = msp.where(mask).sum().values[()]/area/agebin
+        surfsfr_whole = msp.sum().values[()]/area/agebin
     else:
         surfstar = 0
-        surfsfr = 0
+        surfsfr_ring = 0
+        surfsfr_whole = 0
+    Pth_mid = dat.Pth_mid.where(mask).mean().values[()]
+    Pturb_mid = dat.Pturb_mid.where(mask).mean().values[()]
+    Pth_top = dat.Pth_top.where(mask).mean().values[()]
+    Pturb_top = dat.Pturb_top.where(mask).mean().values[()]
+    Wgas = dat.Wgas.where(mask).mean().values[()]
+    Wsp = dat.Wsp.where(mask).mean().values[()]
+    Wext = dat.Wext.where(mask).mean().values[()]
+    Wgas_oneside = dat.Wgas_oneside.where(mask).mean().values[()]
+    Wsp_oneside = dat.Wsp_oneside.where(mask).mean().values[()]
+    Wext_oneside = dat.Wext_oneside.where(mask).mean().values[()]
     n0 = dat.n0.where(mask).mean().values[()]
-    H = dat.H.where(mask).mean().values[()]
-    if flag_sp:
-        Hs = np.sqrt(0.5*(sp.mass*sp.x3**2).sum()/sp.mass.sum())
-    else:
-        Hs = 0
 
-    Pgrav_gas = Pgrav_gas.where(mask).mean().values[()]
-    Pgrav_starpar = Pgrav_starpar.where(mask).mean().values[()]
-    Pgrav_ext = Pgrav_ext.where(mask).mean().values[()]
-    Pturb = dat.Pturb_mid.where(mask).mean().values[()]
-    Pth = dat.Pth_mid.where(mask).mean().values[()]
-    Ptot_top = dat.Ptot_top.where(mask).mean().values[()]
-    return [t, surf, surfstar, surfsfr, n0, H, Hs,
-        Pgrav_gas, Pgrav_starpar, Pgrav_ext, Pturb, Pth, Ptot_top, area]
+    return [t, area, surf, surfsfr_ring, surfsfr_whole, Pth_mid, Pturb_mid, Pth_top, Pturb_top, Wgas, Wsp, Wext, Wgas_oneside, Wsp_oneside, Wext_oneside, n0, surfstar]
 
 def _get_area(dm):
     """return the area (pc^2) of the masked region"""
