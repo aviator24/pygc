@@ -33,12 +33,12 @@ def ring_avg(s, num, mask, twophase=False, sfr_dt=10):
     BH = Plummer(s.par['problem']['M_c'], s.par['problem']['R_c'])
 
     ds = s.load_vtk(num)
-    try:
-        sp = s.load_starpar_vtk(num)
-        flag_sp = True
-    except:
+    sp = s.load_starpar_vtk(num)
+    if sp.shape[1]==0:
         print("no star particles are found")
         flag_sp = False
+    else:
+        flag_sp = True
     t = ds.domain['time']
     dat = ds.get_field(['density','velocity','pressure',
         'gravitational_potential'], as_xarray=True)
