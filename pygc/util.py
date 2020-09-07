@@ -43,7 +43,7 @@ def add_derived_fields(dat, fields=[], in_place=True):
             tmp['cs'] = np.sqrt(cs2)
 
     if 'H' in fields:
-        H2 = (dat.density*dat.z**2).sum()/(dat.density.sum()
+        H2 = (dat.density*dat.z**2).sum()/dat.density.sum()
         if in_place:
             dat['H'] = np.sqrt(H2)
         else:
