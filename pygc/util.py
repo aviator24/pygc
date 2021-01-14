@@ -190,8 +190,10 @@ def sum_dataset(s, nums, twophase=False):
     dat['vp2'] = dat.vp**2
     dat['vz2'] = dat.vz**2
     dat['H'] = 2.5*dat.pressure/dat.density
+    dat['cs'] = np.sqrt((5./3.)*dat.pressure/dat.density)
     # loop through vtks
     for num in nums[1:]:
+        print(num)
         ds = s.load_vtk(num=num)
         tmp = ds.get_field(fields, as_xarray=True)
         if twophase:
@@ -213,6 +215,7 @@ def sum_dataset(s, nums, twophase=False):
         tmp['vp2'] = tmp.vp**2
         tmp['vz2'] = tmp.vz**2
         tmp['H'] = 2.5*tmp.pressure/tmp.density
+        tmp['cs'] = np.sqrt((5./3.)*tmp.pressure/tmp.density)
         # add
         dat += tmp
     return dat

@@ -7,7 +7,7 @@ Author      | Sanghyuk Moon
 """
 
 from pygc.util import sum_dataset
-from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
+import pyathena as pa
 import numpy as np
 import pickle
 import os
@@ -19,7 +19,7 @@ if __name__ == '__main__':
     parser.add_argument('indir', help='input simulation directory')
     parser.add_argument('start', type=int, help='start index')
     parser.add_argument('end', type=int, help='end index')
-    parser.add_argument('--outdir', default=None, help='output directory')
+    parser.add_argument('--outdir', default=None, help='output directory (default=indir/postproc_tavg')
     parser.add_argument('--mpi', action='store_true', help='enable mpi')
     parser.add_argument('--twophase', action='store_true')
     args = parser.parse_args()
@@ -60,7 +60,7 @@ if __name__ == '__main__':
     print('[rank, mysteps]:', myrank, mynums)
 
     # load simulation
-    s = LoadSimTIGRESSGC(args.indir)
+    s = pa.LoadSim(args.indir)
     dat = sum_dataset(s, mynums, twophase=args.twophase)
 
     if args.mpi:
