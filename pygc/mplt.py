@@ -35,7 +35,7 @@ def set_xy_axis(s,axis):
     return x, y, xlabel, ylabel, xlim, ylim
 
 def proj(ax,path,num,
-         axis='z',title='',vmin=1e0,vmax=1e3):
+         axis='z',title='',vmin=1e0,vmax=1e3,s=None,ds=None):
     """Draw projection plot at given snapshot number
 
     Arguments:
@@ -46,10 +46,14 @@ def proj(ax,path,num,
         title: axes title (default:'')
         vmin : minimum imshow color level (default:1e0)
         vmax : maximum imshow color level (default:1e3)
+        s    : LoadSim object (if None, load from path)
+        ds   : AthenaDataSet object (if None, load from path)
     """
     # load simulation
-    s = pa.LoadSim(path, verbose=False)
-    ds = s.load_vtk(num)
+    if s==None:
+        s = pa.LoadSim(path, verbose=False)
+    if ds==None:
+        ds = s.load_vtk(num)
 
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
@@ -70,10 +74,12 @@ def proj(ax,path,num,
     ax.set_title(title)
     ax.set_aspect('equal')
 
-def slice(ax,path,num,f='nH',axis='z',pos=0,title=''):
+def sliceplot(ax,path,num,f='nH',axis='z',pos=0,title='',s=None,ds=None):
     # load simulation
-    s = pa.LoadSim(path, verbose=False)
-    ds = s.load_vtk(num)
+    if s==None:
+        s = pa.LoadSim(path, verbose=False)
+    if ds==None:
+        ds = s.load_vtk(num)
 
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
@@ -91,11 +97,13 @@ def slice(ax,path,num,f='nH',axis='z',pos=0,title=''):
     ax.set_aspect('equal')
 
 def quiver(ax,path,num,which='vel',
-           axis='z',pos=0,method='nearest',avg=None,hw=None,nbin=8,
-           title='',scale=1e-7,color='red'):
+           axis='z',pos=0,avg=None,hw=None,nbin=8,
+           title='',scale=1e-7,color='red',s=None,ds=None):
     # load simulation
-    s = pa.LoadSim(path, verbose=False)
-    ds = s.load_vtk(num)
+    if s==None:
+        s = pa.LoadSim(path, verbose=False)
+    if ds==None:
+        ds = s.load_vtk(num)
 
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
