@@ -34,37 +34,30 @@ def set_xy_axis(s,axis):
         ylim = (s.domain['le'][2], s.domain['re'][2])
     return x, y, xlabel, ylabel, xlim, ylim
 
-def proj(ax,path,num,
-         axis='z',title='',vmin=1e0,vmax=1e3,s=None,ds=None):
+def proj(ax,s,ds,
+         axis='z',title='',vmin=1e0,vmax=1e3,dat={}):
     """Draw projection plot at given snapshot number
 
     Arguments:
         ax   : axes to draw
-        path : path to the base directory of the simulation
-        num  : snapshot number
+        s    : LoadSim object
+        ds   : AthenaDataSet object
         axis : axis to project (default:'z')
         title: axes title (default:'')
         vmin : minimum imshow color level (default:1e0)
         vmax : maximum imshow color level (default:1e3)
-        s    : LoadSim object (if None, load from path)
-        ds   : AthenaDataSet object (if None, load from path)
     """
-    # load simulation
-    if s==None:
-        s = pa.LoadSim(path, verbose=False)
-    if ds==None:
-        ds = s.load_vtk(num)
-
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
 
     # load data
-    dat = ds.get_field(['density'])
+    if not 'density' in dat:
+        dat = ds.get_field(['density'])
     dx = dat[axis][1]-dat[axis][0]
-    dat['surf'] = (dat.density*dx).sum(dim=axis)
+    dat['surf'] = (dat.density*u.Msun*dx).sum(dim=axis)
 
     # draw
-    (dat.surf*u.Msun).plot.imshow(ax=ax,norm=LogNorm(vmin,vmax),
+    (dat.surf).plot.imshow(ax=ax,norm=LogNorm(vmin,vmax),
         cmap='pink_r',
         cbar_kwargs={'label':'$\\Sigma\,[M_\\odot\,{\\rm pc}^{-2}]$'})
     ax.set_xlim(xlim)
@@ -74,13 +67,7 @@ def proj(ax,path,num,
     ax.set_title(title)
     ax.set_aspect('equal')
 
-def sliceplot(ax,path,num,f='nH',axis='z',pos=0,title='',s=None,ds=None):
-    # load simulation
-    if s==None:
-        s = pa.LoadSim(path, verbose=False)
-    if ds==None:
-        ds = s.load_vtk(num)
-
+def sliceplot(ax,s,ds,f='nH',axis='z',pos=0,title=''):
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
 
@@ -96,15 +83,9 @@ def sliceplot(ax,path,num,f='nH',axis='z',pos=0,title='',s=None,ds=None):
     ax.set_title(title)
     ax.set_aspect('equal')
 
-def quiver(ax,path,num,which='vel',
+def quiver(ax,s,ds,which='vel',
            axis='z',pos=0,avg=None,hw=None,nbin=8,
-           title='',scale=1e-7,color='red',s=None,ds=None):
-    # load simulation
-    if s==None:
-        s = pa.LoadSim(path, verbose=False)
-    if ds==None:
-        ds = s.load_vtk(num)
-
+           title='',scale=1e-7,color='red'):
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
     if axis=='z':
@@ -166,12 +147,9 @@ def quiver(ax,path,num,which='vel',
     ax.set_title(title)
     ax.set_aspect('equal')
     
-def hst_Bmag(ax,paths,**kwargs):
-    for path in paths:
-        # load simulation
-        s = pa.LoadSim(path, verbose=False)
-        hst = pa.read_hst(s.files['hst'])
-        ax.semilogy(hst.time*u.Myr, np.sqrt(hst.B1**2+hst.B2**2+hst.B3**2)*u.muG)
+def hst_Bmag(ax,s,**kwargs):
+    hst = pa.read_hst(s.files['hst'])
+    ax.semilogy(hst.time*u.Myr, np.sqrt(hst.B1**2+hst.B2**2+hst.B3**2)*u.muG)
     ax.set_ylim(1e-4,1e-1)    
     ax.set_xlabel('$t$')
     ax.set_ylabel('$\left<|{\\bf B}|\\right>\,[\\mu G]$')
