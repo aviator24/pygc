@@ -47,7 +47,7 @@ def ring_avg(s, num, mask, sfr_dt=10):
     dat = dat.drop('gravitational_potential')
 
     # seperate individual contributions to the gravitational field.
-    ds = read_vtk('{}/postproc_gravity/gc.{:04d}.vtk'.format(s.basedir, num))
+    ds = read_vtk('{}/postproc_gravity/gc.{:04d}.Phi.vtk'.format(s.basedir, num))
     Phigas = ds.get_field('Phi').Phi
     phir = Phigas.shift(z=-1)
     phil = Phigas.shift(z=1)

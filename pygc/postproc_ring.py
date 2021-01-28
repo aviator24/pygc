@@ -8,7 +8,7 @@ Author      | Sanghyuk Moon
 
 from pygc.util import add_derived_fields
 from pygc.ring import mask_ring_by_mass, ring_avg
-from pyathena.tigress_gc.load_sim_tigress_gc import LoadSimTIGRESSGC
+import pyathena as pa
 import pickle
 import argparse
 import numpy as np
@@ -55,7 +55,7 @@ if __name__ == '__main__':
     print('[rank, mysteps]:', myrank, mynums)
 
     # load simulation
-    s = LoadSimTIGRESSGC(args.indir)
+    s = pa.LoadSim(args.indir)
     dat_tavg = pickle.load(open(args.indir+'/postproc_tavg/tavg.pkl','rb'))
     add_derived_fields(dat_tavg, 'surf')
     surf_th, mask = mask_ring_by_mass(dat_tavg, mf_crit=args.mf_crit, Rmax=args.Rmax)
