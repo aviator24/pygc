@@ -27,11 +27,14 @@ def Mdot(iflw_d0):
         Total mass inflow rate through the two nozzles in units of [Msun/yr]
     """
     Mdot = 0
-    for x0 in np.arange(iflw_b+hdx, iflw_b+iflw_w, dx):
-        iflw_v0 = (Lz0 - (x0**2+y0**2)*Omega_0)/(x0*iflw_mu
-                - y0*np.sqrt(1.-iflw_mu**2))
-        Mdot += iflw_d0*iflw_v0*iflw_mu
-    Mdot *= dx*iflw_h
+    xf = np.arange(-args.Lx, args.Lx+1, dx)
+    xv = 0.5*(xf[1:] + xf[:-1])
+    for z0 in xv:
+        for x0 in xv:
+            if ((x0-iflw_b)**2 + z0**2 <= iflw_r0**2):
+                iflw_v0 = (Lz0 - (x0**2+y0**2)*Omega_0)/(x0*iflw_mu
+                                                         - y0*np.sqrt(1.-iflw_mu**2))
+                Mdot += iflw_d0*iflw_v0*iflw_mu*dx*dx
     Mdot *= 2
     Mdot *= u.Msun / u.Myr / 1e6
     return Mdot
@@ -42,23 +45,20 @@ if __name__ == '__main__':
     parser.add_argument('Mdot', default=1, type=float,
             help='mass inflow rate')
 
-    parser.add_argument('Lx', default=1024, type=float,
-            help='domain size [-Lx, Lx]')
-
-    parser.add_argument('Nx', default=256, type=float,
+    parser.add_argument('Nx', type=int,
             help='number of cells')
+
+    parser.add_argument('--Lx', default=1024, type=float,
+            help='domain size [-Lx, Lx]')
 
     parser.add_argument('--Rring', default=500, type=float,
             help='ring radius             (default = 500)')
 
-    parser.add_argument('--iflw_b', default=448, type=float,
-            help='inflow impact parameter (default = 448)')
+    parser.add_argument('--iflw_b', default=512, type=float,
+            help='inflow impact parameter (default = 512)')
 
-    parser.add_argument('--iflw_w', default=192, type=float,
-            help='nozzle width            (default = 192)')
-
-    parser.add_argument('--iflw_h', default=192, type=float,
-            help='nozzle height           (default = 192)')
+    parser.add_argument('--iflw_r0', default=112, type=float,
+            help='nozzle radius           (default = 112)')
 
     parser.add_argument('--iflw_mu', default=10, type=float,
             help='nozzle angle            (default = 10 deg)')
@@ -83,8 +83,7 @@ if __name__ == '__main__':
     target_mdot = args.Mdot
     Rring = args.Rring
     iflw_b = args.iflw_b
-    iflw_w = args.iflw_w
-    iflw_h = args.iflw_h
+    iflw_r0 = args.iflw_r0
     iflw_mu=np.cos(args.iflw_mu*au.deg)
     y0 = -args.Lx-hdx
 
@@ -94,5 +93,5 @@ if __name__ == '__main__':
     vc = np.sqrt(bul.vcirc(Rring,0,0)**2 + BH.vcirc(Rring,0,0)**2)
     Lz0 = Rring*vc
     iflw_d = bisect(lambda x: Mdot(x)-target_mdot, 1e-2, 1e3)
-    print("\nMdot = {}".format(Mdot(iflw_d) + target_mdot))
+    print("\nMdot = {}".format(Mdot(iflw_d)))
     print("iflw_d0 = {:.6f}".format(iflw_d))
