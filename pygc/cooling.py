@@ -89,20 +89,19 @@ class Cooling(coolftn):
         else:
             rhoLP = rhoLP.to('Msun pc**-3').value
         return rhoLP
-    def get_rhoLPeq(self, dx, Teq, asnH=True):
+    def get_rhoLP_from_T(self, dx, T, asnH=True):
         """
-        Caculate LP threshold density from given temperature,
-        assuming thermal equilibrium
+        Caculate LP threshold density from given temperature
         """
         if isinstance(dx, au.quantity.Quantity):
             dx = dx.to('pc')
         else:
             dx = dx * au.pc
-        if isinstance(Teq, au.quantity.Quantity):
-            Teq = Teq.to('K')
+        if isinstance(T, au.quantity.Quantity):
+            T = T.to('K')
         else:
-            Teq = Teq * au.K
-        cs2=ac.k_B*Teq/self._muft(Teq)/ac.m_p
+            T = T * au.K
+        cs2=ac.k_B*T/self._muft(T)/ac.m_p
         return self.get_rhoLP(dx, cs2, asnH=asnH)
 
 if __name__ == '__main__':
