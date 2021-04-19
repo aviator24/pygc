@@ -85,7 +85,7 @@ def sliceplot(ax,s,ds,f='nH',axis='z',pos=0,title=''):
 
 def quiver(ax,s,ds,which='vel',
            axis='z',pos=0,avg=None,hw=None,nbin=8,
-           title='',scale=1e-7,color='red'):
+           title='',scale=1e-7,color='red',dat={}):
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
     if axis=='z':
@@ -117,7 +117,8 @@ def quiver(ax,s,ds,which='vel',
             raise KeyError('which = (vel|B)')
 
     # load data
-    dat = ds.get_field([vx,vy])
+    if not vx in dat:
+        dat = ds.get_field([vx,vy])
     if avg is None:
         # slice
         dat = dat.sel(method='nearest', **{axis:pos})
