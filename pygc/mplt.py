@@ -68,6 +68,18 @@ def proj(ax,s,ds,
     ax.set_aspect('equal')
 
 def sliceplot(ax,s,ds,f='nH',axis='z',pos=0,title=''):
+    """Draw slice plot at given snapshot number
+
+    Arguments:
+        ax   : axes to draw
+        s    : LoadSim object
+        ds   : AthenaDataSet object
+        f    : field to draw
+        axis : axis to slice (default:'z')
+        pos  : the cut position (defulat = 0)
+        title: axes title (default:'')
+    """
+
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
 
@@ -147,7 +159,21 @@ def quiver(ax,s,ds,which='vel',
     ax.set_ylabel(ylabel)
     ax.set_title(title)
     ax.set_aspect('equal')
-    
+   
+def clusters(ax, cl, m0=2e2, agemax=40):
+    """Draw scatterplot of star clusters
+
+    Arguments:
+        ax   : axes to draw
+        cl   : DataFrame returned from load_starpar_vtk
+        m0   : normalization of the symbol size
+        agemax : max age; should be consistent with cl
+    """
+
+    stars = ax.scatter(cl.x1, cl.x2, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
+            edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0, cmap='cool_r', zorder=2, alpha=0.75)    
+    return stars
+
 def hst_Bmag(ax,s,**kwargs):
     hst = pa.read_hst(s.files['hst'])
     ax.semilogy(hst.time*u.Myr, np.sqrt(hst.B1**2+hst.B2**2+hst.B3**2)*u.muG)
