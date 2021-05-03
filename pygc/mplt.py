@@ -35,7 +35,7 @@ def set_xy_axis(s,axis):
     return x, y, xlabel, ylabel, xlim, ylim
 
 def proj(ax,s,ds,
-         axis='z',title='',vmin=1e0,vmax=1e3,dat={}):
+         axis='z',title='',vmin=1e0,vmax=1e3,dat=xr.Dataset()):
     """Draw projection plot at given snapshot number
 
     Arguments:
@@ -52,7 +52,7 @@ def proj(ax,s,ds,
 
     # load data
     if not 'density' in dat:
-        dat = ds.get_field(['density'])
+        dat = dat.merge(ds.get_field(['density']))
     dx = dat[axis][1]-dat[axis][0]
     dat['surf'] = (dat.density*u.Msun*dx).sum(dim=axis)
 
@@ -95,42 +95,42 @@ def sliceplot(ax,s,ds,f='nH',axis='z',pos=0,title=''):
     ax.set_title(title)
     ax.set_aspect('equal')
 
-def quiver(ax,s,ds,which='vel',
+def quiver(ax,s,ds,which='B',
            axis='z',pos=0,avg=None,hw=None,nbin=8,
-           title='',scale=1e-7,color='red',dat={}):
+           title='',scale=1,color='red',dat=xr.Dataset()):
     # set plot attributes
     x, y, xlabel, ylabel, xlim, ylim = set_xy_axis(s,axis)
     if axis=='z':
         if which=='vel':
-            vx = 'vx'
-            vy = 'vy'
+            vx = 'velocity1'
+            vy = 'velocity2'
         elif which=='B':
-            vx = 'Bx'
-            vy = 'By'
+            vx = 'cell_centered_B1'
+            vy = 'cell_centered_B2'
         else:
             raise KeyError('which = (vel|B)')
     elif axis=='y':
         if which=='vel':
-            vx = 'vx'
-            vy = 'vz'
+            vx = 'velocity1'
+            vy = 'velocity3'
         elif which=='B':
-            vx = 'Bx'
-            vy = 'Bz'
+            vx = 'cell_centered_B1'
+            vy = 'cell_centered_B3'
         else:
             raise KeyError('which = (vel|B)')
     elif axis=='x':
         if which=='vel':
-            vx = 'vy'
-            vy = 'vz'
+            vx = 'velocity2'
+            vy = 'velocity3'
         elif which=='B':
-            vx = 'By'
-            vy = 'Bz'
+            vx = 'cell_centered_B2'
+            vy = 'cell_centered_B3'
         else:
             raise KeyError('which = (vel|B)')
 
     # load data
     if not vx in dat:
-        dat = ds.get_field([vx,vy])
+        dat = dat.merge(ds.get_field([vx,vy]))
     if avg is None:
         # slice
         dat = dat.sel(method='nearest', **{axis:pos})
@@ -142,7 +142,8 @@ def quiver(ax,s,ds,which='vel',
             dat = dat.sel(**{axis:slice(-hw,hw)}).mean(dim=axis)
     elif avg=='mass':
         # mass-weighted average along the given axis
-        dat = dat.merge(ds.get_field('density'))
+        if not 'density' in dat:
+            dat = dat.merge(ds.get_field('density'))
         dat = dat.weighted(dat.density).mean(dim=axis)
     # degrade resolution
     x_ = dat[x].coarsen({x:nbin}).mean()
