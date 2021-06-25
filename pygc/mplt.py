@@ -152,7 +152,7 @@ def quiver(ax,s,ds,which='B',
     ax.set_title(title)
     ax.set_aspect('equal')
    
-def clusters(ax, cl, m0=2e2, agemax=40, axis='z', mass_labels=[1e4,1e5,1e6]):
+def clusters(ax, cl, m0=2e2, agemax=40, axis='z', mass_labels=[1e4,1e5,1e6], alpha=0.75):
     """Draw scatterplot of star clusters colored by their age
 
     The size of the symbol scales with the star particle mass. The legends for
@@ -179,23 +179,23 @@ def clusters(ax, cl, m0=2e2, agemax=40, axis='z', mass_labels=[1e4,1e5,1e6]):
         stars = ax.scatter(
             cl.x1, cl.x2, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
-            cmap='cool_r', zorder=2, alpha=0.75)
+            cmap='cool_r', zorder=2, alpha=alpha)
     elif (axis=='y'):
         stars = ax.scatter(
             cl.x1, cl.x3, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
-            cmap='cool_r', zorder=2, alpha=0.75)
+            cmap='cool_r', zorder=2, alpha=alpha)
     elif (axis=='x'):
         stars = ax.scatter(
             cl.x2, cl.x3, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
-            cmap='cool_r', zorder=2, alpha=0.75)
+            cmap='cool_r', zorder=2, alpha=alpha)
 
     ss = []
     label = []
     for mass in mass_labels:
         ss.append(ax.scatter(-2000, 2000, marker='o', s=np.sqrt(mass/m0),
-                  c='k', linewidth=0.3, alpha=0.75))
+                  c='k', linewidth=0.3, alpha=1.0))
         label.append(r'$10^{:d}\,M_\odot$'.format(int(np.log10(mass))))
 
     return stars, ss, label
