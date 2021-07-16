@@ -51,7 +51,8 @@ for num in np.arange(args.ns, args.ne+1, args.step):
     # star particles in x-y plane
     mplt.proj(ax2, s, ds, dat=dat, vmin=1e-2, alpha=0.5, add_colorbar=False)
     if starpar:
-        stars, ss, label = mplt.clusters(ax2, cl, mass_labels=[1e4,1e5,1e6,1e7])
+        stars, ss, label = mplt.clusters(ax2, cl, m0=2e1,
+                                         mass_labels=[1e3,1e4,1e5,1e6])
         plt.colorbar(stars, cax=cax2, label=r'${\rm age}\,[{\rm Myr}]$')
 
     # surface density in x-z plane 
@@ -63,8 +64,8 @@ for num in np.arange(args.ns, args.ne+1, args.step):
     mplt.proj(ax4, s, ds, dat=dat, axis='y', vmin=1e-2, alpha=0.5,
               add_colorbar=False)
     if starpar:
-        stars, ss, label = mplt.clusters(ax4, cl, axis='y',
-                                         mass_labels=[1e4,1e5,1e6,1e7])
+        stars, ss, label = mplt.clusters(ax4, cl, axis='y', m0=2e1,
+                                         mass_labels=[1e3,1e4,1e5,1e6])
         plt.colorbar(stars, cax=cax4, label=r'${\rm age}\,[{\rm Myr}]$')
 
     # add legend
