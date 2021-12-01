@@ -8,7 +8,7 @@ import re
 Twarm = 2.0e4
 u = Units()
 
-def add_derived_fields(dat, fields=[], in_place=True):
+def add_derived_fields(dat, fields=[]):
     """Add derived fields in a Dataset
 
     Parameters
@@ -25,71 +25,44 @@ def add_derived_fields(dat, fields=[], in_place=True):
     except IndexError:
         pass
 
-    if not in_place:
-        tmp = dat.copy()
+    d = dat.copy()
 
     if 'sz' in fields:
         sz2 = (dat.density*dat.velocity3**2).interp(z=0).sum()/dat.density.interp(z=0).sum()
-        if in_place:
-            dat['sz'] = np.sqrt(sz2)
-        else:
-            tmp['sz'] = np.sqrt(sz2)
+        d['sz'] = np.sqrt(sz2)
 
     if 'cs' in fields:
         cs2 = dat.pressure.interp(z=0).sum()/dat.density.interp(z=0).sum()
-        if in_place:
-            dat['cs'] = np.sqrt(cs2)
-        else:
-            tmp['cs'] = np.sqrt(cs2)
+        d['cs'] = np.sqrt(cs2)
 
     if 'H' in fields:
         H2 = (dat.density*dat.z**2).sum()/dat.density.sum()
-        if in_place:
-            dat['H'] = np.sqrt(H2)
-        else:
-            tmp['H'] = np.sqrt(H2)
+        d['H'] = np.sqrt(H2)
 
     if 'surf' in fields:
-        if in_place:
-            dat['surf'] = (dat.density*dz).sum(dim='z')
-        else:
-            tmp['surf'] = (dat.density*dz).sum(dim='z')
+        d['surf'] = (dat.density*dz).sum(dim='z')
 
     if 'R' in fields:
-        if in_place:
-            dat.coords['R'] = np.sqrt(dat.x**2 + dat.y**2)
-        else:
-            tmp.coords['R'] = np.sqrt(dat.x**2 + dat.y**2)
+        d.coords['R'] = np.sqrt(dat.y**2 + dat.x**2)
 
     if 'Pturb' in fields:
-        if in_place:
-            dat['Pturb'] = dat.density*dat.velocity3**2
-        else:
-            tmp['Pturb'] = dat.density*dat.velocity3**2
+        d['Pturb'] = dat.density*dat.velocity3**2
 
     if 'T' in fields:
         cf = coolftn()
         pok = dat.pressure*u.pok
         T1 = pok/(dat.density*u.muH) # muH = Dcode/mH
-        if in_place:
-            dat['T'] = xr.DataArray(cf.get_temp(T1.values), coords=T1.coords,
-                    dims=T1.dims)
-        else:
-            tmp['T'] = xr.DataArray(cf.get_temp(T1.values), coords=T1.coords,
-                    dims=T1.dims)
+        d['T'] = xr.DataArray(cf.get_temp(T1.values), coords=T1.coords,
+                dims=T1.dims)
 
     if 'gz_sg' in fields:
         phir = dat.gravitational_potential.shift(z=-1)
         phil = dat.gravitational_potential.shift(z=1)
         phir.loc[{'z':phir.z[-1]}] = 3*phir.isel(z=-2) - 3*phir.isel(z=-3) + phir.isel(z=-4)
         phil.loc[{'z':phir.z[0]}] = 3*phil.isel(z=1) - 3*phil.isel(z=2) + phil.isel(z=3)
-        if in_place:
-            dat['gz_sg'] = (phil-phir)/(2*dz)
-        else:
-            tmp['gz_sg'] = (phil-phir)/(2*dz)
+        d['gz_sg'] = (phil-phir)/(2*dz)
 
-    if not in_place:
-        return tmp
+    return d
 
 def count_SNe(s, ts, te, ncrit):
     """Count the number of SNe and map the result onto a grid
