@@ -1,3 +1,5 @@
+import pyathena as pa
+from pathlib import Path
 from pyathena.util.units import Units
 from pyathena.classic.cooling import coolftn
 import numpy as np
@@ -7,6 +9,30 @@ import re
 
 Twarm = 2.0e4
 u = Units()
+
+def find_snapshot_number(s, t0):
+    """Return snapshot numbers [ns, ns+1] such that t(ns) <= t0 < t(ns+1)"""
+    a = s.nums_id0[0]
+    b = s.nums_id0[-1]
+    # initial check
+    ta = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(a)), id0_only=True).domain['time']*u.Myr
+    tb = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(b)), id0_only=True).domain['time']*u.Myr
+    if ta==t0:
+        return (0,1)
+    if (ta-t0)*(tb-t0) > 0:
+        raise ValueError("No snapshot with t={} Myr.".format(t0) +
+                         "Time at first and last snapshot: {:.2f} Myr, {:.2f} Myr".format(ta,tb))
+    # bisection
+    while (b - a > 1):
+        c = round((a+b)/2)
+        ta = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(a)), id0_only=True).domain['time']*u.Myr
+        tb = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(b)), id0_only=True).domain['time']*u.Myr
+        tc = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(c)), id0_only=True).domain['time']*u.Myr
+        if (ta-t0)*(tc-t0) < 0:
+            b = c
+        else:
+            a = c
+    return (a, b)
 
 def add_derived_fields(dat, fields=[]):
     """Add derived fields in a Dataset
