@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm,SymLogNorm
+from matplotlib.markers import MarkerStyle
 import numpy as np
 import pyathena as pa
 import xarray as xr
@@ -175,26 +176,27 @@ def clusters(ax, cl, m0=2e2, agemax=40, axis='z', mass_labels=[1e4,1e5,1e6], alp
         stars, ss, label = clusters(ax, cl, mass_labels=[1e4,1e5,1e6,1e7])
     """
 
+    mrk = MarkerStyle('o', 'full')
     if (axis=='z'):
         stars = ax.scatter(
-            cl.x1, cl.x2, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
+            cl.x1, cl.x2, marker=mrk, s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
             cmap='cool_r', zorder=2, alpha=alpha)
     elif (axis=='y'):
         stars = ax.scatter(
-            cl.x1, cl.x3, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
+            cl.x1, cl.x3, marker=mrk, s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
             cmap='cool_r', zorder=2, alpha=alpha)
     elif (axis=='x'):
         stars = ax.scatter(
-            cl.x2, cl.x3, marker='o', s=np.sqrt(cl.mass/m0), c=cl.mage,
+            cl.x2, cl.x3, marker=mrk, s=np.sqrt(cl.mass/m0), c=cl.mage,
             edgecolor='black', linewidth=0.3, vmax=agemax, vmin=0,
             cmap='cool_r', zorder=2, alpha=alpha)
 
     ss = []
     label = []
     for mass in mass_labels:
-        ss.append(ax.scatter(-2000, 2000, marker='o', s=np.sqrt(mass/m0),
+        ss.append(ax.scatter(-2000, 2000, marker=mrk, s=np.sqrt(mass/m0),
                   c='k', linewidth=0.3, alpha=1.0))
         label.append(r'$10^{:d}\,M_\odot$'.format(int(np.log10(mass))))
 
