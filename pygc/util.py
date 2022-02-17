@@ -11,6 +11,18 @@ Twarm = 2.0e4
 u = Units()
 
 def find_snapshot_number(s, t0):
+    """Return snapshot number that is closest to t0"""
+    nl, nu = bracket_snapshot_number(s, t0)
+    tl = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(nl)), id0_only=True).domain['time']*u.Myr
+    tu = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(nu)), id0_only=True).domain['time']*u.Myr
+    offl = abs(tl-t0)
+    offu = abs(tu-t0)
+    num = nl if offl < offu else nu
+    if min(offl, offu) > 0.01:
+        print("WARNING: time offset is greater than 0.01 Myr")
+    return num
+
+def bracket_snapshot_number(s, t0):
     """Return snapshot numbers [ns, ns+1] such that t(ns) <= t0 < t(ns+1)"""
     a = s.nums_id0[0]
     b = s.nums_id0[-1]
