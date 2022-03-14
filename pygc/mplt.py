@@ -198,6 +198,9 @@ def clusters(ax, cl, m0=2e2, agemax=40, axis='z', mass_labels=[1e4,1e5,1e6], alp
     for mass in mass_labels:
         ss.append(ax.scatter(-2000, 2000, marker=mrk, s=np.sqrt(mass/m0),
                   c='k', linewidth=0.3, alpha=1.0))
+# use the cluster label with the first color of cool_r cmap
+#        ss.append(ax.scatter(-2000, 2000, marker=mrk, s=np.sqrt(mass/m0),
+#                  c=[0,], linewidth=0.3, alpha=1.0, cmap='cool_r'))
         label.append(r'$10^{:d}\,M_\odot$'.format(int(np.log10(mass))))
 
     return stars, ss, label
