@@ -100,8 +100,8 @@ class Ferrers(pot):
         self.W11 = (self.W01-self.W10)/(a**2*e**2)
         self.W20 = 2./3.*(1./a**5/(1.-e**2) - self.W11)
         self.W02 = 0.25*(2./a**5/(1.-e**2)**2 - self.W11)
-    def rho(self, x, y):
-        g2 = (y/self.a)**2 + (x/self.b)**2
+    def rho(self, x, y, z):
+        g2 = (y/self.a)**2 + (x**2 + z**2)/self.b**2
         den = np.zeros(g2.shape)
         den[g2<1] = self.rhobar*(1.-g2[g2<1])
         return den
