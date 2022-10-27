@@ -100,6 +100,9 @@ def add_derived_fields(dat, fields=[]):
     if 'R' in fields:
         d.coords['R'] = np.sqrt(dat.y**2 + dat.x**2)
 
+    if 'phi' in fields:
+        d.coords['phi'] = np.arctan2(dat.y, dat.x)
+
     if 'Pturb' in fields:
         d['Pturb'] = dat.density*dat.velocity3**2
 
