@@ -148,3 +148,15 @@ def vcirc_KE17(R):
     return in km/s
     """
     return 215 + 95*np.tanh((R-70)/60) - 50*np.log10(R) + 1.5*(np.log10(R))**3
+
+def get_circular_velocity(s,x,y=0,z=0,rotating_frame=True):
+    bul = MHubble(rb=s.par['problem']['R_b'], rhob=s.par['problem']['rho_b'])
+    bh = Plummer(Mc=s.par['problem']['M_c'], Rc=s.par['problem']['R_c'])
+    Omega_p = s.par['problem']['Omega_p']
+    vbul = bul.vcirc(x, y, z)
+    vbh = bh.vcirc(x, y, z)
+    R = np.sqrt(x**2 + y**2)
+    vcirc = np.sqrt(vbul**2 + vbh**2)
+    if rotating_frame:
+        vcirc -= R*Omega_p
+    return vcirc
