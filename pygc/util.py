@@ -10,15 +10,11 @@ import re
 Twarm = 2.0e4
 u = Units()
 
-def find_snapshot_number(s, t0):
+def find_snapshot_number(s, t0, id0=True):
     """Return snapshot number that is closest to t0"""
-    nl, nu = bracket_snapshot_number(s, t0)
-    if len(s.nums_id0) == 0:
-        tl = s.load_vtk(nl, id0=False).domain['time']*u.Myr
-        tu = s.load_vtk(nu, id0=False).domain['time']*u.Myr
-    else:
-        tl = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(nl)), id0_only=True).domain['time']*u.Myr
-        tu = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(nu)), id0_only=True).domain['time']*u.Myr
+    nl, nu = bracket_snapshot_number(s, t0, id0)
+    tl = s.load_vtk(nl, id0=id0).domain['time']*u.Myr
+    tu = s.load_vtk(nu, id0=id0).domain['time']*u.Myr
     offl = abs(tl-t0)
     offu = abs(tu-t0)
     num = nl if offl < offu else nu
@@ -26,21 +22,17 @@ def find_snapshot_number(s, t0):
         print("WARNING: time offset is greater than 0.01 Myr")
     return num
 
-def bracket_snapshot_number(s, t0):
+def bracket_snapshot_number(s, t0, id0=True):
     """Return snapshot numbers [ns, ns+1] such that t(ns) <= t0 < t(ns+1)"""
-    if len(s.nums_id0) == 0:
-        a = s.nums[0]
-        b = s.nums[-1]
-    else:
+    if id0:
         a = s.nums_id0[0]
         b = s.nums_id0[-1]
-    # initial check
-    if len(s.nums_id0) == 0:
-        ta = s.load_vtk(a, id0=False).domain['time']*u.Myr
-        tb = s.load_vtk(b, id0=False).domain['time']*u.Myr
     else:
-        ta = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(a)), id0_only=True).domain['time']*u.Myr
-        tb = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(b)), id0_only=True).domain['time']*u.Myr
+        a = s.nums[0]
+        b = s.nums[-1]
+    # initial check
+    ta = s.load_vtk(a, id0=id0).domain['time']*u.Myr
+    tb = s.load_vtk(b, id0=id0).domain['time']*u.Myr
     if ta==t0:
         return (0,1)
     if (ta-t0)*(tb-t0) > 0:
@@ -49,14 +41,9 @@ def bracket_snapshot_number(s, t0):
     # bisection
     while (b - a > 1):
         c = round((a+b)/2)
-        if len(s.nums_id0) == 0:
-            ta = s.load_vtk(a, id0=False).domain['time']*u.Myr
-            tb = s.load_vtk(b, id0=False).domain['time']*u.Myr
-            tc = s.load_vtk(c, id0=False).domain['time']*u.Myr
-        else:
-            ta = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(a)), id0_only=True).domain['time']*u.Myr
-            tb = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(b)), id0_only=True).domain['time']*u.Myr
-            tc = pa.read_vtk(Path(s.basedir, 'id0/gc.{:04d}.vtk'.format(c)), id0_only=True).domain['time']*u.Myr
+        ta = s.load_vtk(a, id0=id0).domain['time']*u.Myr
+        tb = s.load_vtk(b, id0=id0).domain['time']*u.Myr
+        tc = s.load_vtk(c, id0=id0).domain['time']*u.Myr
         if (ta-t0)*(tc-t0) < 0:
             b = c
         else:
